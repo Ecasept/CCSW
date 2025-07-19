@@ -1,0 +1,6 @@
+.venv/
+simulation/node_modules/
+logs/
+simulation/simulation_results.txt
+test.png
+__pycache__/
