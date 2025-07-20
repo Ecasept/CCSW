@@ -14,7 +14,7 @@ export const ActionSchema = z.object({
 // Main data push schema
 export const DataPushSchema = z.object({
     userId: z.string().min(1),
-    timestamp: z.iso.datetime({ offset: true }), // ISO 8601 format with timezone offset
+    timestamp: z.string().datetime({ offset: true }), // ISO 8601 format with timezone offset
     values: z.array(z.number()).length(GOOD_COUNT),
     bought: z.array(z.boolean()).length(GOOD_COUNT),
     actions: z.array(ActionSchema).max(GOOD_COUNT)

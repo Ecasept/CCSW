@@ -14,6 +14,42 @@ export type Database = {
     }
     public: {
         Tables: {
+            notifications: {
+                Row: {
+                    actions: Json
+                    created_at: string
+                    id: string
+                    user_id: string
+                }
+                Insert: {
+                    actions: Json
+                    created_at?: string
+                    id?: string
+                    user_id: string
+                }
+                Update: {
+                    actions?: Json
+                    created_at?: string
+                    id?: string
+                    user_id?: string
+                }
+                Relationships: []
+            }
+            users: {
+                Row: {
+                    fcm_token: string | null
+                    id: string
+                }
+                Insert: {
+                    fcm_token?: string | null
+                    id: string
+                }
+                Update: {
+                    fcm_token?: string | null
+                    id?: string
+                }
+                Relationships: []
+            }
             value_history: {
                 Row: {
                     bought: boolean[]

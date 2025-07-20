@@ -1,17 +1,11 @@
-import { createClient } from "@supabase/supabase-js";
-import { DataPushSchema, type DataPushRequest, type DataPushResponse, type ErrorResponse } from "./types";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { Action, DataPushSchema, type DataPushRequest, type DataPushResponse, type ErrorResponse } from "./types";
 import z from "zod";
+import { errorResponse } from "./utils";
+import { sendPushNotification } from "./notify";
 
 
-function errorResponse(message: string, status: number = 400): Response {
-    return new Response(JSON.stringify({
-        success: false,
-        error: message,
-    }), {
-        status,
-        headers: { "Content-Type": "application/json" }
-    });
-}
+
 
 /** Validates the schema and returns a type-safe response,
  * or a 404 response */
@@ -25,6 +19,19 @@ function ensureSchema<T>(schema: z.ZodType<T>, data: unknown): { success: true; 
             success: false,
             response: errorResponse(`Invalid request data: ${result.error.message}`)
         };
+    }
+}
+
+export async function pushNotification(userId: string, actions: Action[], client: SupabaseClient) {
+    const { error } = await client
+        .from("notifications")
+        .insert({
+            user_id: userId,
+            actions: actions
+        });
+    if (error) {
+        console.error("Error inserting notification:", error);
+        return errorResponse("Failed to store notification", 500);
     }
 }
 
@@ -48,9 +55,23 @@ export async function dataPush(request: Request, env: Env, ctx: ExecutionContext
             timestamp: data.timestamp,
             values: data.values,
             bought: data.bought,
-        })
+        });
     if (error) {
         console.error("Error inserting data:", error);
         return errorResponse("Failed to store values", 500);
     }
+    // Push notifications to users
+    const response = await pushNotification(data.userId, data.actions, client);
+    if (response !== undefined) {
+        // If there was an error sending the notification, return it
+        return response;
+    }
+    // Return success response
+    return new Response(JSON.stringify({
+        success: true,
+        message: "Data pushed successfully",
+    } satisfies DataPushResponse), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+    });
 }
