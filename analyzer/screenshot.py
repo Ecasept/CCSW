@@ -30,16 +30,12 @@ def take_screenshot(callback=None):
         timestamp = datetime.now().astimezone()
 
         # Grab the screen
-        log.debug("Taking screenshot of entire screen")
         screenshot = get_screenshot()
-        log.debug("Screenshot captured successfully")
+        log.debug(f"Screenshot taken at {timestamp.isoformat()}")
 
         # Call the callback if provided
         if callback:
-            log.debug("Processing screenshot with callback function")
             callback(screenshot, timestamp)
-        else:
-            log.debug("No callback provided, screenshot taken only")
 
     except Exception as e:
         log.exception("Failed to take screenshot")
