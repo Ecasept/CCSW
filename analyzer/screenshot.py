@@ -27,8 +27,8 @@ def take_screenshot(callback=None):
     """
     try:
         # Capture the timestamp when screenshot is taken
-        timestamp = datetime.now()
-        
+        timestamp = datetime.now().astimezone()
+
         # Grab the screen
         log.debug("Taking screenshot of entire screen")
         screenshot = get_screenshot()
