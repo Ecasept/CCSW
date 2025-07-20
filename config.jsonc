@@ -8,5 +8,6 @@
     "userId": "4uo234324",
     "serverUrl": "http://localhost:54545",
     "checkInterval": 30,
-    "useTestImage": true
+    "useTestImage": true,
+    "simulationYears": 10
 }

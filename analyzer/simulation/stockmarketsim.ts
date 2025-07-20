@@ -22,7 +22,7 @@ import JSON5 from 'json5';
 const config = JSON5.parse(readFileSync('../../config.jsonc', 'utf-8'));
 const bankLevel = config.bankLevel;                           // Bank upgrade level
 const dragonBoost = config.hasSupremeIntellect ? 1 : 0;      // Supreme Intellect dragon upgrade
-
+const YEARS = config.simulationYears;
 
 
 /** Initializes the game with the code from the game */
@@ -125,9 +125,6 @@ function gameInit() {
 
 
 const tick = gameInit();
-
-// How many years to simulate
-const YEARS = 1;
 
 const TICKS_PER_YEAR = 60 * 24 * 365; // = 525600
 const TICKS = TICKS_PER_YEAR * YEARS;
