@@ -16,9 +16,12 @@ interface Good {
 const goodsById: Good[] = [];
 
 import { readFileSync } from 'fs';
-const config = JSON.parse(readFileSync('../../config.json', 'utf-8'));
-const bankLevel = config.bankLevel;
-const dragonBoost = config.hasSupremeIntellect ? 1 : 0;
+import JSON5 from 'json5';
+
+// Load configuration from JSON5 file (supports comments)
+const config = JSON5.parse(readFileSync('../../config.jsonc', 'utf-8'));
+const bankLevel = config.bankLevel;                           // Bank upgrade level
+const dragonBoost = config.hasSupremeIntellect ? 1 : 0;      // Supreme Intellect dragon upgrade
 
 
 

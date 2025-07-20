@@ -1,5 +1,5 @@
-CONF_FILE = "../config.json"
-import json
+CONF_FILE = "../config.jsonc"
+import pyjson5
 
 class Config:
     SELL_QUARTILE: float
@@ -14,9 +14,13 @@ class Config:
     
     def load_config(self, conf_file):
         with open(conf_file, "r") as file:
-            config = json.load(file)
+            config = pyjson5.load(file)
+            
+            # Trading thresholds
             self.SELL_QUARTILE = config["sellQuartile"]
             self.BUY_QUARTILE = config["buyQuartile"]
+            
+            # System settings
             self.USER_ID = config["userId"]
             self.SERVER_URL = config["serverUrl"]
             self.CHECK_INTERVAL = config["checkInterval"]
