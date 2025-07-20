@@ -2,6 +2,37 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
+from dataclasses import dataclass
+
+
+@dataclass
+class Colors:
+    """ANSI color codes for terminal output"""
+    DEBUG: str = '\033[36m'      # Cyan
+    INFO: str = '\033[32m'       # Green
+    WARNING: str = '\033[33m'    # Yellow
+    ERROR: str = '\033[31m'      # Red
+    CRITICAL: str = '\033[35m'   # Magenta
+    RESET: str = '\033[0m'       # Reset
+    BOLD: str = '\033[1m'        # Bold
+    TIMESTAMP: str = '\033[90m'  # Dark gray
+    NAME: str = '\033[94m'       # Light blue
+
+
+class ColoredFormatter(logging.Formatter):
+    """Custom formatter with ANSI color codes for different log levels"""
+
+    def __init__(self):
+        # Build format string with embedded ANSI colors
+        asctime = f"{Colors.TIMESTAMP}%(asctime)s{Colors.RESET}"
+        name = f"{Colors.NAME}%(name)s{Colors.RESET}"
+        levelname = f"{Colors.BOLD}%(levelname)s{Colors.RESET}"
+        message = "%(message)s"
+
+        # Combine into final format string
+        fmt = f"{asctime} - {name} - {levelname} - {message}"
+
+        super().__init__(fmt, datefmt='%Y-%m-%d %H:%M:%S')
 
 
 class Logger:
@@ -26,7 +57,8 @@ class Logger:
         # Console handler
         console_handler = logging.StreamHandler()
         console_handler.setLevel(level)
-        console_handler.setFormatter(formatter)
+        colored_formatter = ColoredFormatter()
+        console_handler.setFormatter(colored_formatter)
         self.logger.addHandler(console_handler)
 
         # File handler (optional)
