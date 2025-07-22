@@ -6,8 +6,8 @@
     "sellQuartile": 0.75,
     "buyQuartile": 0.25,
     "userId": "4uo234324",
-    "serverUrl": "http://localhost:54545",
-    "checkInterval": 30,
+    "serverUrl": "http://localhost:8787",
+    "checkInterval": 3,
     "useTestImage": true,
     "simulationYears": 10
 }

@@ -6,7 +6,7 @@ from simulation.simulation import init_sim_data
 
 def main():
     """Main function to start the Cookie Clicker bot with logging."""
-    log.info("Starting Cookie Clicker Stock Market Bot")
+    log.info("Starting CCSW Bot")
 
     try:
         if not init_sim_data():
@@ -18,7 +18,7 @@ def main():
     except Exception as e:
         log.exception("Unexpected error occurred")
     finally:
-        log.info("Cookie Clicker Stock Market Bot shutdown complete")
+        log.info("CCSW Bot shutdown complete")
 
 
 if __name__ == "__main__":
