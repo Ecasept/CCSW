@@ -1,6 +1,6 @@
 
 [db.vault]
-project_url = "env(SUPABASE_URL)"
+project_url = "env(SERVER_URL)"
 
 [functions.push]
 enabled = true
