@@ -20,16 +20,31 @@ const supabase = createClient(
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 )
 
+function errorResponse(message: string, status: number = 400) {
+    return new Response(JSON.stringify({ error: message }), {
+        status,
+        headers: { 'Content-Type': 'application/json' },
+    })
+}
+
 Deno.serve(async (req) => {
     const payload: WebhookPayload = await req.json()
 
-    const { data } = await supabase
+    const { data, error } = await supabase
         .from('profiles')
         .select('fcm_token')
         .eq('id', payload.record.user_id)
-        .single()
+        .maybeSingle()
 
-    const fcmToken = data!.fcm_token as string
+    if (error) {
+        console.error('Error fetching FCM token:', error)
+        return errorResponse('Error fetching FCM token', 500)
+    } else if (!data) {
+        console.warn('No FCM token found for user:', payload.record.user_id)
+        return errorResponse('No FCM token found for user', 404)
+    }
+
+    const fcmToken = data.fcm_token as string
 
     const accessToken = await getAccessToken({
         clientEmail: serviceAccount.client_email,
