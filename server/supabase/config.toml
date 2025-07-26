@@ -1,4 +1,7 @@
 
+[db.vault]
+project_url = "env(SUPABASE_URL)"
+
 [functions.push]
 enabled = true
 verify_jwt = true
