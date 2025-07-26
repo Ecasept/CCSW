@@ -1,4 +1,4 @@
-import { supabase } from "..";
+import { supabase } from "../utils";
 import { DataPushSchema } from "../types";
 import { ensureSchema, errorResponse, successResponse } from "../utils";
 import { sendPushNotification } from "./notifications";

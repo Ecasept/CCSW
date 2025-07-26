@@ -1,6 +1,5 @@
-import { supabase } from "..";
 import { RegisterSchema } from "../types";
-import { ensureSchema, errorResponse, successResponse } from "../utils";
+import { ensureSchema, errorResponse, successResponse, supabase } from "../utils";
 
 export async function register(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     // Parse and validate request body

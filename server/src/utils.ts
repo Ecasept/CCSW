@@ -42,3 +42,9 @@ export function createSupabaseClient(env: Env): SupabaseClient<Database> {
     return createClient<Database>(env.SUPABASE_URL, env.SUPABASE_KEY);
 }
 
+export let supabase: SupabaseClient<Database>;
+
+export function initSupabaseClient(env: Env) {
+    supabase = createSupabaseClient(env);
+}
+

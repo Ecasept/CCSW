@@ -1,6 +1,5 @@
-import { supabase } from "..";
 import { Action, DataPushSchema } from "../types";
-import { errorResponse } from "../utils";
+import { errorResponse, supabase } from "../utils";
 
 export async function sendPushNotification(userId: string, actions: Action[]) {
     const { error } = await supabase
