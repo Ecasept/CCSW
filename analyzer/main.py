@@ -1,8 +1,13 @@
-import screenshot
-import ocr
-from logger import log
 from simulation.simulation import init_sim_data
+from logger import log
+import screenshot
 
+log.info("Importing OCR module")
+import ocr  # noqa: E402
+
+# Set cwd to the script's directory
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 def main():
     """Main function to start the Cookie Clicker bot with logging."""

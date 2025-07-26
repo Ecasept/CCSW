@@ -25,7 +25,7 @@ def push_values(vals: list[int], bought: list[bool], actions: list[dict], timest
         }
 
         # Make the POST request to the server
-        url = conf.SERVER_URL + "/api/data"
+        url = conf.Endpoint.UPDATE
 
         response = requests.post(url, json=payload, timeout=10)
         log.debug(f"Server response ({response.status_code}): {response.text}")

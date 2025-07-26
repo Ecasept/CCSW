@@ -51,6 +51,8 @@ def ocr_pil_image(image):
         # Get OCR reader
         ocr_reader = get_ocr_reader()
 
+        log.debug("Performing OCR on image...")
+
         # Perform OCR
         results = ocr_reader.readtext(image_np)
 
