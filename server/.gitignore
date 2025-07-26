@@ -174,3 +174,5 @@ dist
 
 
 service-account.json
+supabase/.branches/
+supabase/.temp/

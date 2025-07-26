@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { JWT } from 'npm:google-auth-library@9'
 import serviceAccount from '../service-account.json' with { type: 'json' }
+import { Database } from "./database.types.ts";
 
 interface Notification {
     id: string
@@ -15,7 +16,7 @@ interface WebhookPayload {
     schema: 'public'
 }
 
-const supabase = createClient(
+const supabase = createClient<Database>(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 )
@@ -39,12 +40,12 @@ Deno.serve(async (req) => {
     if (error) {
         console.error('Error fetching FCM token:', error)
         return errorResponse('Error fetching FCM token', 500)
-    } else if (!data) {
+    } else if (!data || !data.fcm_token) {
         console.warn('No FCM token found for user:', payload.record.user_id)
         return errorResponse('No FCM token found for user', 404)
     }
 
-    const fcmToken = data.fcm_token as string
+    const fcmToken = data.fcm_token;
 
     const accessToken = await getAccessToken({
         clientEmail: serviceAccount.client_email,

@@ -20,17 +20,24 @@ export const DataPushSchema = z.object({
     actions: z.array(ActionSchema).max(GOOD_COUNT)
 });
 
+export const RegisterSchema = z.object({
+    userId: z.string().min(1),
+    fcmToken: z.string().min(1),
+});
+
 // Infer TypeScript types from Zod schemas
 export type Action = z.infer<typeof ActionSchema>;
 export type DataPushRequest = z.infer<typeof DataPushSchema>;
-
-// Response types
-export interface DataPushResponse {
-    success: boolean;
-    message: string;
-}
+export type RegisterRequest = z.infer<typeof RegisterSchema>;
 
 export interface ErrorResponse {
     success: false;
     error: string;
 }
+
+export interface SuccessResponse {
+    success: true;
+    data?: any; // Optional data field for success responses
+}
+
+export type ApiResponse = ErrorResponse | SuccessResponse;

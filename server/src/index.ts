@@ -11,7 +11,13 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-import { dataPush } from "./api";
+import { SupabaseClient } from "@supabase/supabase-js";
+import { Database } from "./database.types";
+import { createSupabaseClient } from "./utils";
+import { update } from "./api/update";
+import { register } from "./api/register";
+
+export let supabase: SupabaseClient<Database>;
 
 export default {
     async fetch(request, env, ctx): Promise<Response> {
@@ -19,8 +25,12 @@ export default {
         switch (url.pathname) {
             case "/":
                 return new Response("Hello, World!");
-            case "/api/data":
-                return dataPush(request, env, ctx);
+            case "/api/update":
+                supabase = createSupabaseClient(env);
+                return update(request, env, ctx);
+            case "/api/register":
+                supabase = createSupabaseClient(env);
+                return register(request, env, ctx);
             default:
                 return new Response("Not Found", { status: 404 });
         }
