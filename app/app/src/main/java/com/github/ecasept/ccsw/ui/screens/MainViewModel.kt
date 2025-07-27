@@ -20,12 +20,6 @@ open class MainViewModel @JvmOverloads constructor(
         initialValue = null
     )
 
-    fun updateUserId(userId: String) {
-        viewModelScope.launch {
-            dataStore.updateUserId(userId)
-        }
-    }
-
     fun logout() {
         viewModelScope.launch {
             dataStore.updateUserId(null)

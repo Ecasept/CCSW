@@ -1,5 +1,7 @@
 package com.github.ecasept.ccsw.ui.screens.login
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,42 +14,87 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.ecasept.ccsw.ui.components.MainTopAppBar
 import com.github.ecasept.ccsw.ui.theme.CCSWTheme
 
 
 @Composable
-fun LoginScreen(onLogin: (userId: String) -> Unit) {
+fun LoginScreen(
+    viewModel: LoginViewModel = viewModel()
+) {
+    val state = viewModel.loginState.collectAsStateWithLifecycle().value
+
     Scaffold(
         topBar = { MainTopAppBar(title = "CCSW Login") },
     ) { innerPadding ->
-        LoginContent(
-            Modifier
-                .padding(innerPadding)
-                .padding(16.dp), onLogin)
+        Permission(
+            onContinue = viewModel::login,
+            permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.POST_NOTIFICATIONS
+            } else {
+                null
+            },
+        ) { showRationale, onRationaleClick, onButtonClick ->
+            LoginContent(
+                Modifier
+                    .padding(innerPadding)
+                    .padding(16.dp),
+                showRationale,
+                onButtonClick,
+                state.userId,
+                viewModel::updateUserId,
+                onRationaleClick
+            )
+        }
     }
 }
 
 
 @Composable
-fun LoginContent(modifier: Modifier = Modifier, onLogin: (userId: String) -> Unit) {
-    var userId by remember { mutableStateOf("") }
+fun LoginContent(
+    modifier: Modifier = Modifier,
+    showRationale: Boolean,
+    onButtonClick: () -> Unit,
+    userId: String,
+    updateUserId: (userId: String) -> Unit,
+    onRationaleClick: (Boolean) -> Unit
+) {
+
+    if (showRationale) {
+        AlertDialog(
+            onDismissRequest = { },
+            confirmButton = {
+                TextButton(onClick = { onRationaleClick(true) }) {
+                    Text("Allow")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onRationaleClick(false) }) {
+                    Text("Continue without")
+                }
+            },
+            title = { Text("Notification Permission Required") },
+            text = {
+                Text("To receive stock updates, please allow notification access.")
+            },
+        )
+    }
 
     Column(
         modifier = modifier
@@ -91,7 +138,7 @@ fun LoginContent(modifier: Modifier = Modifier, onLogin: (userId: String) -> Uni
 
         OutlinedTextField(
             value = userId,
-            onValueChange = { userId = it },
+            onValueChange = updateUserId,
             label = { Text("User ID") },
             singleLine = true,
             modifier = Modifier
@@ -101,9 +148,7 @@ fun LoginContent(modifier: Modifier = Modifier, onLogin: (userId: String) -> Uni
         )
 
         Button(
-            onClick = {
-                onLogin(userId)
-            },
+            onClick = onButtonClick,
             enabled = userId.isNotBlank(),
             modifier = Modifier
                 .fillMaxWidth()
@@ -128,6 +173,7 @@ fun LoginContent(modifier: Modifier = Modifier, onLogin: (userId: String) -> Uni
 @Composable
 fun LoginScreenPreview() {
     CCSWTheme {
-        LoginScreen {}
+        LoginScreen(
+        )
     }
 }
