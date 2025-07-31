@@ -4,7 +4,7 @@ create table public.profiles (
 );
 
 create table public.notifications (
-  id uuid not null default gen_random_uuid(),
+  id uuid not null default gen_random_uuid() primary key,
   user_id text not null,
   created_at timestamp with time zone not null default now(),
   actions jsonb not null
