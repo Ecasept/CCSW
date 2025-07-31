@@ -1,10 +1,8 @@
 import { RegisterSchema } from "../types";
-import { ensureSchema, errorResponse, successResponse, supabase } from "../utils";
+import { ensureRequest, ensureSchema, errorResponse, successResponse, supabase } from "../utils";
 
 export async function register(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    // Parse and validate request body
-    const data = await request.json();
-    const res = ensureSchema(RegisterSchema, data);
+    const res = await ensureRequest(request, "POST", RegisterSchema);
     if (res.success === false) {
         return res.response;
     }

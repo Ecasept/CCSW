@@ -1,12 +1,10 @@
-import { supabase } from "../utils";
+import { ensureRequest, supabase } from "../utils";
 import { DataPushSchema } from "../types";
 import { ensureSchema, errorResponse, successResponse } from "../utils";
 import { sendPushNotification } from "./notifications";
 
 export async function update(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    // Parse and validate request body
-    const body = await request.json();
-    const res = ensureSchema(DataPushSchema, body);
+    const res = await ensureRequest(request, "POST", DataPushSchema);
     if (res.success === false) {
         return res.response;
     }

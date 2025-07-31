@@ -25,10 +25,10 @@ export default {
                 return new Response("Hello, World!");
             case "/api/update":
                 initSupabaseClient(env);
-                return update(request, env, ctx);
+                return await update(request, env, ctx);
             case "/api/register":
                 initSupabaseClient(env);
-                return register(request, env, ctx);
+                return await register(request, env, ctx);
             default:
                 return new Response("Not Found", { status: 404 });
         }
