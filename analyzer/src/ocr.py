@@ -5,7 +5,7 @@ from PIL import Image
 import os
 from logger import log
 import time
-import server
+import upload
 
 GOOD_COUNT = 18
 CONFIDENCE_THRESHOLD = 0.2

@@ -8,6 +8,7 @@
     "userId": "4uo234324",
     "serverUrl": "http://localhost:8787",
     "checkInterval": 3,
-    "useTestImage": true,
-    "simulationYears": 10
+    "useTestImage": false,
+    "simulationYears": 10,
+    "boundsServerPort": 8439
 }

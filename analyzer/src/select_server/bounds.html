@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCSW Bounds Selection</title>
+    <style>
+        :root {
+            --bg-color: #373a34;
+            --text-color: white;
+            --button-color: #4CAF50;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #373a34;
+                --text-color: white;
+                --button-color: #4CAF50;
+            }
+        }
+
+
+        html {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        #container {
+            position: relative;
+            width: fit-content;
+            margin: auto;
+            max-width: 100vw;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: crosshair;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        #image {
+            display: block;
+            max-width: 100vw;
+            max-height: 80vh;
+            width: auto;
+            height: auto;
+        }
+
+        #controls {
+            text-align: center;
+        }
+
+        #submit {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: var(--button-color);
+            color: var(--text-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: filter 0.1s;
+        }
+
+        #submit:disabled {
+            cursor: not-allowed;
+            filter: grayscale(100%);
+        }
+
+        #modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+        }
+
+        #modal[data-visible="true"] {
+            visibility: visible;
+        }
+    </style>
+
+    <script>
+        function init() {
+
+        }
+
+    </script>
+
+    <script>
+        function run() {
+
+            /** @type {HTMLButtonElement} */
+            const submitButton = document.querySelector("#submit");
+            /** @type {HTMLDivElement} */
+            const boundsDisplay = document.querySelector("#bounds-display");
+            /** @type {HTMLCanvasElement} */
+            const canvas = document.querySelector("#canvas");
+            const ctx = canvas.getContext("2d");
+            /** @type {HTMLImageElement} */
+            const img = document.querySelector("#image");
+            /** @type {HTMLDivElement} */
+            const modal = document.querySelector("#modal");
+            /** @type {HTMLSpanElement} */
+            const modalText = document.querySelector("#modal-text");
+
+            function showModal(text) {
+                modalText.textContent = text;
+                modal.setAttribute("data-visible", "true");
+            }
+
+            async function submit() {
+                const data = state.bounds.xywh();
+                if (!data) {
+                    showModal("No bounds selected. Please select a valid area.");
+                    return;
+                }
+                try {
+                    const res = await fetch("/bounds", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (res.ok) {
+                        showModal("Bounds submitted successfully! You can close this tab and return to the program.");
+                    } else {
+                        showModal(`Error submitting bounds: ${res.status} ${res.statusText}`);
+                    }
+                } catch (error) {
+                    showModal(`Error submitting bounds: ${error.message}`);
+                }
+            }
+
+            submitButton.addEventListener("click", submit);
+
+            class Bounds {
+                clear() {
+                    this.startX = undefined;
+                    this.startY = undefined;
+                    this.endX = undefined;
+                    this.endY = undefined;
+                    this.updateDisplay();
+                }
+                get startX() {
+                    return this._startX;
+                }
+                set startX(value) {
+                    this._startX = value;
+                    this.updateDisplay();
+                }
+                get startY() {
+                    return this._startY;
+                }
+                set startY(value) {
+                    this._startY = value;
+                    this.updateDisplay();
+                }
+                get endX() {
+                    return this._endX;
+                }
+                set endX(value) {
+                    this._endX = value;
+                    this.updateDisplay();
+                }
+                get endY() {
+                    return this._endY;
+                }
+                set endY(value) {
+                    this._endY = value;
+                    this.updateDisplay();
+                }
+                get isSet() {
+                    return this.startX !== undefined && this.startY !== undefined &&
+                        this.endX !== undefined && this.endY !== undefined;
+                }
+                xywh() {
+                    if (this.isSet) {
+                        return {
+                            x: Math.min(this.startX, this.endX),
+                            y: Math.min(this.startY, this.endY),
+                            width: Math.abs(this.endX - this.startX),
+                            height: Math.abs(this.endY - this.startY)
+                        };
+                    }
+                    return null;
+                }
+                updateDisplay() {
+                    console.log(this.xywh());
+                    if (this.isSet) {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.strokeStyle = "red";
+                        ctx.lineWidth = 2;
+                        const data = this.xywh();
+                        ctx.strokeRect(
+                            data.x,
+                            data.y,
+                            data.width,
+                            data.height
+                        );
+                        const xEnd = data.x + data.width;
+                        const yEnd = data.y + data.height;
+                        boundsDisplay.textContent = `Bounds: (${data.x}, ${data.y}) to (${xEnd}, ${yEnd})`;
+                    } else {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        boundsDisplay.textContent = "No bounds selected.";
+                    }
+                }
+            }
+            class State {
+                constructor() {
+                    this.bounds = new Bounds();
+                    this._isDrawing = false;
+                }
+                get isDrawing() {
+                    return this._isDrawing;
+                }
+                set isDrawing(value) {
+                    this._isDrawing = value;
+                    this.updateDisplay();
+                }
+                updateDisplay() {
+                    if (!this.isDrawing && this.bounds.isSet) {
+                        submitButton.disabled = false;
+                    } else {
+                        submitButton.disabled = true;
+                    }
+                }
+            }
+
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+            };
+
+            img.src = "/img";
+
+            const state = new State();
+
+            canvas.addEventListener("mousedown", (e) => {
+                state.isDrawing = true;
+                state.bounds.clear();
+                state.bounds.startX = e.offsetX;
+                state.bounds.startY = e.offsetY;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+
+            canvas.addEventListener("mousemove", (e) => {
+                if (state.isDrawing) {
+                    state.bounds.endX = e.offsetX;
+                    state.bounds.endY = e.offsetY;
+                }
+            });
+
+            canvas.addEventListener("mouseup", (e) => {
+                state.bounds.endX = e.offsetX;
+                state.bounds.endY = e.offsetY;
+                state.isDrawing = false;
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <h1>CCSW Bounds Selection</h1>
+    <p>Click and drag to select which part of the image should be analyzed for the stock market data.</p>
+    <div id="container">
+        <img id="image" alt="CCSW Screenshot">
+        <canvas id="canvas"></canvas>
+    </div>
+    <div id="controls">
+        <button id="submit" disabled autocomplete="off">Submit</button>
+        <div id="bounds-display">
+            No bounds selected.
+        </div>
+    </div>
+    <div id="modal">
+        <span id="modal-text"></span>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", run);
+    </script>
+</body>
+
+</html>

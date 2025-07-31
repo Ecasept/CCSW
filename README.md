@@ -2,12 +2,16 @@
 If someone is hosting this project, you can use their instance:
 - Configure your preferred settings in `config.jsonc`
 - Set the `serverUrl` value to their domain
+- Install the requirements from `analyzer/requirements.txt`
 - Execute `analyzer/main.py` for the monitoring
 - Build the app in `app`
 
 
-# Hosting yourself (haven't tested these instructions)
-- Create a new cloudflare worker and supabase project
+# Hosting yourself (haven't tested these instructions, some steps might be missing)
+- Create
+    - a new cloudflare worker
+    - supabase project
+    - firebase project
 - Set the `name` property in `server/wrangler.jsonc` to the name of your cloudflare worker
 - Create `server/.env.local` at put your supabase project url in it, following `server/.env.local.example`
 - Create `server/.dev.vars` and put your supabase project url and secret key init, following `server/.dev.vars.example`
@@ -24,6 +28,10 @@ If someone is hosting this project, you can use their instance:
 - Run `npx supabase link` to link your workspace with your remote project
 - Deploy the supabase edge functions with `npx supabase functions deploy`
 - Deploy the supabase database with `npx supabase db push`, or `npx supabse db reset --linked` if you have previously already pushed to the db.
+- Add your app to firebase
+- Download the `google-services.json` file and put it at `app/app/google-services.json`
+- Create a new service account, ensure it has the necessary permissions, and put the `service-account.json` file at `server/supabase/functions/service-account.json`
+- Install the requirements from `analyzer/requirements.txt`
 - Execute `analyzer/main.py` for the monitoring
 - Build the app in `app`
 
@@ -36,3 +44,6 @@ If someone is hosting this project, you can use their instance:
     - Cloudflare: https://<custom>.<username>.workers.dev/<custom>
     - Supabase: https://<project-id>.supabase.co/functions/v1/<custom>
 - I ran into issues getting the Supabase edge runtime and docker containers to work locally
+
+# Why use pycurl instead of requests
+I had SSL problems using the `requests` library (it would not recognize that the hostname matched, I suspect there is a bug in the library with subdomain wildcards).

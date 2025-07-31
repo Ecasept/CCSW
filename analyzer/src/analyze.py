@@ -1,4 +1,4 @@
-import server
+import upload
 from simulation.simulation import get_quartiles
 from config import conf
 

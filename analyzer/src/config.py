@@ -9,6 +9,7 @@ class Config:
     SERVER_URL: str
     CHECK_INTERVAL: int
     USE_TEST_IMAGE: bool
+    BOUNDS_SERVER_PORT: int
 
     class Endpoints:
         def __init__(self, server_url):
@@ -31,6 +32,7 @@ class Config:
             self.SERVER_URL = config["serverUrl"]
             self.CHECK_INTERVAL = config["checkInterval"]
             self.USE_TEST_IMAGE = config["useTestImage"]
+            self.BOUNDS_SERVER_PORT = config["boundsServerPort"]
 
             # Endpoints
             self.Endpoint = self.Endpoints(self.SERVER_URL)

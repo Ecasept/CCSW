@@ -2,12 +2,13 @@ import time
 from datetime import datetime
 from PIL import ImageGrab, Image
 import os
+from select_server.bounds import Bounds
 from logger import log
 from config import conf
 
 
 def get_test_image():
-    return Image.open("test.png")
+    return Image.open("../test.png")
 
 
 def get_screenshot():
@@ -41,20 +42,32 @@ def take_screenshot(callback=None):
         log.exception("Failed to take screenshot")
 
 
-def start_screenshot_loop(callback=None):
+def crop_screenshot(image: Image.Image, bounds: Bounds) -> Image:
+    return image.crop((
+        bounds.x, bounds.y,
+        bounds.x + bounds.width,
+        bounds.y + bounds.height
+    ))
+
+
+def start_screenshot_loop(bounds: Bounds, callback):
     """
     Starts a loop to take a screenshot at a regular interval.
 
     Args:
-        callback (function, optional): Callback function to process each screenshot.
+        callback (function): Callback function to process each screenshot.
                                      Should accept image and timestamp as parameters.
     """
     screenshot_count = 0
 
+    def cb(image, timestamp):
+        cropped = crop_screenshot(image, bounds)
+        callback(cropped, timestamp)
+
     while True:
         screenshot_count += 1
         log.info(f"Taking screenshot #{screenshot_count}")
-        take_screenshot(callback)
+        take_screenshot(cb)
         log.info(
             f"Waiting {conf.CHECK_INTERVAL} seconds until next screenshot...")
         time.sleep(conf.CHECK_INTERVAL)

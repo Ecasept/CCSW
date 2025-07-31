@@ -7,7 +7,7 @@ def read_quartiles():
         data = file.read().strip()
         global _QUARTILES
         _QUARTILES = [[float(num) for num in string.split(" ")]
-                     for string in data.split("\n")]
+                      for string in data.split("\n")]
         log.info("Simulation data initialized successfully")
 
 
@@ -21,8 +21,10 @@ def init_sim_data():
             return True
         return False
 
+
 def get_quartiles():
     return _QUARTILES
+
 
 _QUARTILES: list[list[float]] = []
 
