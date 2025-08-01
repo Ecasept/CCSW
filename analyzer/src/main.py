@@ -1,15 +1,14 @@
 
-from logger import log
-from select_server.server import get_bounds
-from simulation.simulation import init_sim_data
 import os
 # Set cwd to the script's directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-import screenshot  # noqa: E402
-
-log.info("Importing OCR module")
 import ocr  # noqa: E402
+import screenshot  # noqa: E402
+from logger import log  # noqa: E402
+from select_server.server import get_bounds, Bounds  # noqa: E402
+from simulation.simulation import init_sim_data  # noqa: E402
+from config import conf  # noqa: E402
 
 
 def main():
@@ -19,7 +18,7 @@ def main():
     try:
         if not init_sim_data():
             return
-        bounds = get_bounds()
+        bounds = Bounds(0, 0, 0, 0) if conf.MOCK_DATA else get_bounds()
         screenshot.start_screenshot_loop(
             bounds, ocr.process_screenshot_callback)
     except KeyboardInterrupt:

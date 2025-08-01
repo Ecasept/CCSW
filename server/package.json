@@ -1,5 +1,5 @@
 {
-    "name": "cookie_clicker_stock_watcher",
+    "name": "cookie-clicker-stock-watcher",
     "version": "0.0.0",
     "private": true,
     "scripts": {
@@ -16,6 +16,7 @@
         "wrangler": "^4.25.0"
     },
     "dependencies": {
+        "@google/genai": "^1.12.0",
         "@supabase/supabase-js": "^2.52.0",
         "fcm-cloudflare-workers": "^2.0.1",
         "zod": "^3.25.76"

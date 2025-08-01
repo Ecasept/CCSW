@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "cookie_clicker_stock_watcher",
+	"name": "cookie-clicker-stock-watcher",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-07-19",
 	"observability": {

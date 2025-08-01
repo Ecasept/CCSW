@@ -1,17 +1,24 @@
+from io import BytesIO
 from analyze import analyze_values
-import easyocr
 import numpy as np
 from PIL import Image
-import os
 from logger import log
 import time
-import upload
+import request
+from config import conf
+import base64
+if conf.USE_LEGACY_OCR:
+    log.info("Importing OCR module")
+    import easyocr
 
 GOOD_COUNT = 18
 CONFIDENCE_THRESHOLD = 0.2
 
 # Initialize EasyOCR reader (only needs to be done once)
 reader = None
+
+MOCK_DATA = {'bought': [True, True, False, True, False, True, True, False, False, True, False, False, True, False, False, False, True, False], 'values': [
+    25.44, 44.83, 40.48, 19.49, 25.07, 10.33, 132.46, 135.11, 41.16, 136.76, 97.89, 177.25, 13.74, 162.87, 110.16, 151.28, 170.4, 170.23]}
 
 
 def get_ocr_reader():
@@ -80,13 +87,22 @@ def ocr_pil_image(image):
 
 def process_screenshot_callback(screenshot_image, timestamp):
     """
-    Callback function to process a screenshot with OCR.
+    Callback function to process a screenshot.
 
     Args:
         screenshot_image (PIL.Image): The screenshot image
         timestamp (datetime): When the screenshot was taken
     """
+    if conf.MOCK_DATA:
+        analyze_values(MOCK_DATA['values'], MOCK_DATA['bought'], timestamp)
+        return
+    if conf.USE_LEGACY_OCR:
+        return process_ocr(screenshot_image, timestamp)
+    else:
+        return process_ai(screenshot_image, timestamp)
 
+
+def process_ocr(screenshot_image, timestamp):
     # Perform OCR on the image
     extracted_text = ocr_pil_image(screenshot_image)
     values = []
@@ -117,3 +133,36 @@ def process_screenshot_callback(screenshot_image, timestamp):
             f"Expected {GOOD_COUNT} stock counts, found {len(bought)} - skipping")
         return
     analyze_values(values, bought, timestamp)
+
+
+def to_base64(image: Image.Image) -> str:
+    """
+    Convert a PIL Image to a base64 encoded string.
+    """
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+
+def process_ai(screenshot_image, timestamp):
+    data = {
+        "image": to_base64(screenshot_image),
+    }
+    status_code, response_body = request.post(
+        conf.Endpoint.IMG_PROCESS, data, timeout=100)
+    if status_code >= 400:
+        log.error(
+            f"Failed to process image with AI. Status: {status_code}, Response: {response_body}")
+        return
+    success = response_body.get("success", False)
+    if not success:
+        log.error(
+            f"AI processing failed: {response_body.get('error', 'Unknown error')}")
+        return
+    data = response_body["data"]
+
+    analyze_values(
+        data["values"],
+        data["bought"],
+        timestamp
+    )

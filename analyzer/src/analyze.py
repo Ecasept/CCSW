@@ -46,4 +46,4 @@ def analyze_values(values: list[int], bought: list[bool], timestamp):
                 "type": "sell"
             })
 
-    server.push_values(values, bought, actions, timestamp)
+    upload.push_values(values, bought, actions, timestamp)

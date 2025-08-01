@@ -7,8 +7,11 @@
     "buyQuartile": 0.25,
     "userId": "4uo234324",
     "serverUrl": "http://localhost:8787",
-    "checkInterval": 3,
-    "useTestImage": false,
+    // "serverUrl": "https://cookie-clicker-stock-watcher.ecasept.workers.dev",
+    "checkInterval": 60,
+    "useTestImage": true,
     "simulationYears": 10,
-    "boundsServerPort": 8439
+    "boundsServerPort": 8439,
+    "useLegacyOcr": false,
+    "mockData": true
 }

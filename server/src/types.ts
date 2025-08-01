@@ -1,3 +1,4 @@
+import { Type } from '@google/genai';
 import { z } from 'zod';
 
 const GOOD_COUNT = 18; // Total number of stocks
@@ -25,6 +26,10 @@ export const RegisterSchema = z.object({
     fcmToken: z.string().min(1),
 });
 
+export const ImageProcessSchema = z.object({
+    image: z.string().min(1), // Base64 encoded image string
+});
+
 // Infer TypeScript types from Zod schemas
 export type Action = z.infer<typeof ActionSchema>;
 export type DataPushRequest = z.infer<typeof DataPushSchema>;
@@ -41,3 +46,38 @@ export interface SuccessResponse {
 }
 
 export type ApiResponse = ErrorResponse | SuccessResponse;
+
+export const geminiResponseSchema = {
+    type: Type.OBJECT,
+    properties: {
+        bought: {
+            type: Type.ARRAY,
+            items: { type: Type.BOOLEAN },
+            minItems: GOOD_COUNT,
+            maxItems: GOOD_COUNT,
+            nullable: false,
+        },
+        values: {
+            type: Type.ARRAY,
+            items: { type: Type.NUMBER },
+            minItems: GOOD_COUNT,
+            maxItems: GOOD_COUNT,
+            nullable: false,
+        },
+        nullable: true,
+    }
+}
+
+export const geminiPrompt = `
+You are provided with an image of goods on a stock market.
+From left to right, top to bottom, parse the information into an object.
+The object should contain the following fields:
+- "bought": an array of booleans indicating whether each stock is bought (true) or not (false).
+- "values": an array of floats representing the current value of each stock.
+Return null if the image can't be parsed.
+Example:
+{
+    "bought": [true, false, false, true, true, true, false, ...],
+    "values": [10.43, 28.84, 54.12, 22.98, ...]
+}
+`.trim();

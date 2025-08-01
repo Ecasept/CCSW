@@ -16,6 +16,7 @@ import { Database } from "./database.types";
 import { initSupabaseClient } from "./utils";
 import { update } from "./api/update";
 import { register } from "./api/register";
+import { processImg } from "./api/process";
 
 export default {
     async fetch(request, env, ctx): Promise<Response> {
@@ -29,6 +30,8 @@ export default {
             case "/api/register":
                 initSupabaseClient(env);
                 return await register(request, env, ctx);
+            case "/api/process":
+                return await processImg(request, env, ctx);
             default:
                 return new Response("Not Found", { status: 404 });
         }

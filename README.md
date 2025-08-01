@@ -21,6 +21,7 @@ If someone is hosting this project, you can use their instance:
     - You might need to switch to the API Keys tab from Legacy API Keys
     - Click "Add new API Key", enter the details and click "Create API Key"
     - Copy the key and put it into the file
+- Create a new API key in the google a ai studio and add id to the `server/.dev.vars` file
 - Execute `npx wrangler secret put SUPABASE_KEY` and `npx wrangler secret put SUPABASE_URL` and for each enter what you entered into the `.dev.vars` file respectively
 - Configure your preferred settings in `config.jsonc`
 - Set the `serverUrl` property to the url of the cloudflare worker
