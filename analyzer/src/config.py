@@ -13,6 +13,8 @@ class Config:
     BOUNDS_SERVER_PORT: int
     MOCK_DATA: bool
 
+    GOOD_COUNT = 18
+
     class Endpoints:
         def __init__(self, server_url):
             self.UPDATE = f"{server_url}/api/update"

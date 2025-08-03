@@ -11,7 +11,6 @@ if conf.USE_LEGACY_OCR:
     log.info("Importing OCR module")
     import easyocr
 
-GOOD_COUNT = 18
 CONFIDENCE_THRESHOLD = 0.2
 
 # Initialize EasyOCR reader (only needs to be done once)
@@ -124,13 +123,13 @@ def process_ocr(screenshot_image, timestamp):
             else:
                 bought.append(True)
 
-    if len(values) != GOOD_COUNT:
+    if len(values) != conf.GOOD_COUNT:
         log.warning(
-            f"Expected {GOOD_COUNT} values, found {len(values)} - skipping")
+            f"Expected {conf.GOOD_COUNT} values, found {len(values)} - skipping")
         return
-    if len(bought) != GOOD_COUNT:
+    if len(bought) != conf.GOOD_COUNT:
         log.warning(
-            f"Expected {GOOD_COUNT} stock counts, found {len(bought)} - skipping")
+            f"Expected {conf.GOOD_COUNT} stock counts, found {len(bought)} - skipping")
         return
     analyze_values(values, bought, timestamp)
 
