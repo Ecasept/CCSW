@@ -16,8 +16,28 @@ CONFIDENCE_THRESHOLD = 0.2
 # Initialize EasyOCR reader (only needs to be done once)
 reader = None
 
-MOCK_DATA = {'bought': [True, True, False, True, False, True, True, False, False, True, False, False, True, False, False, False, True, False], 'values': [
-    25.44, 44.83, 40.48, 19.49, 25.07, 10.33, 132.46, 135.11, 41.16, 136.76, 97.89, 177.25, 13.74, 162.87, 110.16, 151.28, 170.4, 170.23]}
+MOCK_DATA = {
+    'goods': [
+        {'value': 25.44, 'bought': True},
+        {'value': 44.83, 'bought': True},
+        {'value': 40.48, 'bought': False},
+        {'value': 19.49, 'bought': True},
+        {'value': 25.07, 'bought': False},
+        {'value': 10.33, 'bought': True},
+        {'value': 132.46, 'bought': True},
+        {'value': 135.11, 'bought': False},
+        {'value': 41.16, 'bought': False},
+        {'value': 136.76, 'bought': True},
+        {'value': 97.89, 'bought': False},
+        {'value': 177.25, 'bought': False},
+        {'value': 13.74, 'bought': True},
+        {'value': 162.87, 'bought': False},
+        {'value': 110.16, 'bought': False},
+        {'value': 151.28, 'bought': False},
+        {'value': 170.4, 'bought': True},
+        {'value': 170.23, 'bought': False}
+    ]
+}
 
 
 def get_ocr_reader():
@@ -93,7 +113,7 @@ def process_screenshot_callback(screenshot_image, timestamp):
         timestamp (datetime): When the screenshot was taken
     """
     if conf.MOCK_DATA:
-        analyze_values(MOCK_DATA['values'], MOCK_DATA['bought'], timestamp)
+        analyze_values(MOCK_DATA['goods'], timestamp)
         return
     if conf.USE_LEGACY_OCR:
         return process_ocr(screenshot_image, timestamp)
@@ -131,7 +151,11 @@ def process_ocr(screenshot_image, timestamp):
         log.warning(
             f"Expected {conf.GOOD_COUNT} stock counts, found {len(bought)} - skipping")
         return
-    analyze_values(values, bought, timestamp)
+    
+    # Convert to list of dicts
+    goods = [{"value": value, "bought": bought_status} 
+             for value, bought_status in zip(values, bought)]
+    analyze_values(goods, timestamp)
 
 
 def to_base64(image: Image.Image) -> str:
@@ -160,8 +184,4 @@ def process_ai(screenshot_image, timestamp):
         return
     data = response_body["data"]
 
-    analyze_values(
-        data["values"],
-        data["bought"],
-        timestamp
-    )
+    analyze_values(data["goods"], timestamp)

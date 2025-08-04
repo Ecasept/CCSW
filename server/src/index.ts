@@ -17,6 +17,7 @@ import { initSupabaseClient } from "./utils";
 import { update } from "./api/update";
 import { register } from "./api/register";
 import { processImg } from "./api/process";
+import { goodHistory } from "./api/goodHistory";
 
 export default {
     async fetch(request, env, ctx): Promise<Response> {
@@ -32,6 +33,9 @@ export default {
                 return await register(request, env, ctx);
             case "/api/process":
                 return await processImg(request, env, ctx);
+            case "/api/goodHistory":
+                initSupabaseClient(env);
+                return await goodHistory(request, env, ctx);
             default:
                 return new Response("Not Found", { status: 404 });
         }

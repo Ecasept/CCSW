@@ -18,8 +18,7 @@ export async function update(request: Request, env: Env, ctx: ExecutionContext):
         .insert({
             userId: data.userId,
             timestamp: data.timestamp,
-            values: data.values,
-            bought: data.bought,
+            goods: data.goods,
         });
     if (error) {
         console.error("Error inserting data:", error);

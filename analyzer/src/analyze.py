@@ -35,13 +35,18 @@ def buy_thresh(good: int):
     return get_quartiles()[good][MAPPING[conf.BUY_QUARTILE]]
 
 
-def analyze_values(values: list[int], bought: list[bool], timestamp):
+def analyze_values(goods: list[dict], timestamp):
     """
     Analyzes the values of goods and determines the notifications to send to the user.
+
+    Args:
+        goods: List of dictionaries with 'value' and 'bought' keys
+        timestamp: Datetime object representing when the screenshot was taken
     """
     actions = []
 
-    for i, value in enumerate(values):
+    for i, good in enumerate(goods):
+        value, bought = good['value'], good['bought']
         sell_threshold = sell_thresh(i)
         buy_threshold = buy_thresh(i)
         prev_state = prev_good_state[i]
@@ -61,7 +66,7 @@ def analyze_values(values: list[int], bought: list[bool], timestamp):
                 "type": action_type
             })
 
-        if bought[i]:
+        if bought:
             if prev_state != GoodState.SHOULD_SELL and cur_state == GoodState.SHOULD_SELL:
                 # Good changed to SHOULD_SELL so post a send action
                 action(sell_threshold, "sell")
@@ -77,4 +82,4 @@ def analyze_values(values: list[int], bought: list[bool], timestamp):
                 action(buy_threshold, "missed_buy")
         prev_good_state[i] = cur_state
 
-    upload.push_values(values, bought, actions, timestamp)
+    upload.push_values(goods, actions, timestamp)

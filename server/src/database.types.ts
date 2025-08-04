@@ -52,22 +52,19 @@ export type Database = {
       }
       value_history: {
         Row: {
-          bought: boolean[]
+          goods: Json[]
           timestamp: string
           userId: string
-          values: number[]
         }
         Insert: {
-          bought: boolean[]
+          goods: Json[]
           timestamp: string
           userId: string
-          values: number[]
         }
         Update: {
-          bought?: boolean[]
+          goods?: Json[]
           timestamp?: string
           userId?: string
-          values?: number[]
         }
         Relationships: []
       }

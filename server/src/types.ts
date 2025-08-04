@@ -2,22 +2,27 @@ import { Type } from '@google/genai';
 import { z } from 'zod';
 
 const GOOD_COUNT = 18; // Total number of stocks
-
+const GOOD_MIN = 1; // Minimum possible value for a stock
 
 // Action schema for stock recommendations
 export const ActionSchema = z.object({
     good: z.number().int().min(0).max(GOOD_COUNT - 1),
-    value: z.number().min(0), // Current value of the stock
-    thresh: z.number().min(0), // Threshold value (buy or sell threshold)
+    value: z.number().min(GOOD_MIN), // Current value of the stock
+    thresh: z.number().min(GOOD_MIN), // Threshold value (buy or sell threshold)
     type: z.enum(['buy', 'sell']), // Action type (only buy/sell, no hold in Python code)
+});
+
+// Good item schema combining value and bought status
+export const GoodSchema = z.object({
+    value: z.number().min(GOOD_MIN), // Current value of the stock
+    bought: z.boolean() // Whether the stock is bought or not
 });
 
 // Main data push schema
 export const DataPushSchema = z.object({
     userId: z.string().min(1),
     timestamp: z.string().datetime({ offset: true }), // ISO 8601 format with timezone offset
-    values: z.array(z.number()).length(GOOD_COUNT),
-    bought: z.array(z.boolean()).length(GOOD_COUNT),
+    goods: z.array(GoodSchema).length(GOOD_COUNT),
     actions: z.array(ActionSchema).max(GOOD_COUNT)
 });
 
@@ -32,8 +37,6 @@ export const ImageProcessSchema = z.object({
 
 // Infer TypeScript types from Zod schemas
 export type Action = z.infer<typeof ActionSchema>;
-export type DataPushRequest = z.infer<typeof DataPushSchema>;
-export type RegisterRequest = z.infer<typeof RegisterSchema>;
 
 export interface ErrorResponse {
     success: false;
@@ -50,16 +53,16 @@ export type ApiResponse = ErrorResponse | SuccessResponse;
 export const geminiResponseSchema = {
     type: Type.OBJECT,
     properties: {
-        bought: {
+        goods: {
             type: Type.ARRAY,
-            items: { type: Type.BOOLEAN },
-            minItems: GOOD_COUNT,
-            maxItems: GOOD_COUNT,
-            nullable: false,
-        },
-        values: {
-            type: Type.ARRAY,
-            items: { type: Type.NUMBER },
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    value: { type: Type.NUMBER },
+                    bought: { type: Type.BOOLEAN }
+                },
+                required: ["value", "bought"]
+            },
             minItems: GOOD_COUNT,
             maxItems: GOOD_COUNT,
             nullable: false,
@@ -72,12 +75,18 @@ export const geminiPrompt = `
 You are provided with an image of goods on a stock market.
 From left to right, top to bottom, parse the information into an object.
 The object should contain the following fields:
-- "bought": an array of booleans indicating whether each stock is bought (true) or not (false).
-- "values": an array of floats representing the current value of each stock.
+- "goods": an array of objects, each containing:
+    - "value": a float representing the current value of the stock
+    - "bought": a boolean indicating whether the stock is bought (true) or not (false)
 Return null if the image can't be parsed.
 Example:
 {
-    "bought": [true, false, false, true, true, true, false, ...],
-    "values": [10.43, 28.84, 54.12, 22.98, ...]
+        "goods": [
+                {"value": 10.43, "bought": true},
+                {"value": 28.84, "bought": false},
+                {"value": 54.12, "bought": false},
+                {"value": 22.98, "bought": true},
+                ...
+        ]
 }
 `.trim();

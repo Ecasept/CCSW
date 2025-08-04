@@ -7,13 +7,12 @@ from logger import log
 import request
 
 
-def push_values(vals: list[int], bought: list[bool], actions: list[dict], timestamp: datetime):
+def push_values(goods: list[dict], actions: list[dict], timestamp: datetime):
     """
-    Push values, bought status, actions, and timestamp to the server.
+    Push combined goods data, actions, and timestamp to the server.
 
     Args:
-        vals: List of current stock values
-        bought: List of boolean indicating if stock is owned
+        goods: List of dictionaries with `value` and `bought` keys
         actions: List of recommended actions
         timestamp: Datetime object representing when the screenshot was taken
     """
@@ -22,12 +21,11 @@ def push_values(vals: list[int], bought: list[bool], actions: list[dict], timest
         payload = {
             "userId": conf.USER_ID,
             "timestamp": timestamp.isoformat(),
-            "values": vals,
-            "bought": bought,
+            "goods": goods,
             "actions": actions
         }
 
-        status_code, _ = request.post(conf.Endpoint.UPDATE, payload)
+        status_code, response_body = request.post(conf.Endpoint.UPDATE, payload)
 
         if status_code >= 400:
             log.error(
