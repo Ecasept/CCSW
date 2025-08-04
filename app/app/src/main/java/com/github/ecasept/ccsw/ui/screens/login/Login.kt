@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -36,7 +37,7 @@ import com.github.ecasept.ccsw.ui.theme.CCSWTheme
 
 @Composable
 fun LoginScreen(
-    viewModel: LoginViewModel = viewModel()
+    onLoginNav: () -> Unit, viewModel: LoginViewModel = viewModel()
 ) {
     val state = viewModel.loginState.collectAsStateWithLifecycle().value
 
@@ -44,7 +45,7 @@ fun LoginScreen(
         topBar = { MainTopAppBar(title = "CCSW Login") },
     ) { innerPadding ->
         Permission(
-            onContinue = viewModel::login,
+            onContinue = { viewModel.login(onLoginNav) },
             permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 Manifest.permission.POST_NOTIFICATIONS
             } else {
@@ -59,7 +60,8 @@ fun LoginScreen(
                 onButtonClick,
                 state.userId,
                 viewModel::updateUserId,
-                onRationaleClick
+                onRationaleClick,
+                state.loadState
             )
         }
     }
@@ -73,27 +75,12 @@ fun LoginContent(
     onButtonClick: () -> Unit,
     userId: String,
     updateUserId: (userId: String) -> Unit,
-    onRationaleClick: (Boolean) -> Unit
+    onRationaleClick: (Boolean) -> Unit,
+    loadState: LoadState
 ) {
 
     if (showRationale) {
-        AlertDialog(
-            onDismissRequest = { },
-            confirmButton = {
-                TextButton(onClick = { onRationaleClick(true) }) {
-                    Text("Allow")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { onRationaleClick(false) }) {
-                    Text("Continue without")
-                }
-            },
-            title = { Text("Notification Permission Required") },
-            text = {
-                Text("To receive stock updates, please allow notification access.")
-            },
-        )
+        RationaleDialog(onRationaleClick)
     }
 
     Column(
@@ -147,33 +134,100 @@ fun LoginContent(
             shape = RoundedCornerShape(12.dp)
         )
 
-        Button(
-            onClick = onButtonClick,
-            enabled = userId.isNotBlank(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Login,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
+        ContinueButton(
+            onClick = onButtonClick, enabled = userId.isNotBlank(), loadState = loadState
+        )
+        if (loadState is LoadState.Failure) {
             Text(
-                text = "Continue",
-                style = MaterialTheme.typography.labelLarge
+                text = loadState.message,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp)
             )
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun LoginScreenPreview() {
-    CCSWTheme {
-        LoginScreen(
+fun RationaleDialog(onRationaleClick: (Boolean) -> Unit) {
+    AlertDialog(
+        onDismissRequest = { },
+        confirmButton = {
+            TextButton(onClick = { onRationaleClick(true) }) {
+                Text("Allow")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onRationaleClick(false) }) {
+                Text("Continue without")
+            }
+        },
+        title = { Text("Notification Permission Required") },
+        text = {
+            Text("To receive stock updates, please allow notification access.")
+        },
+    )
+}
+
+@Composable
+fun ContinueButton(
+    onClick: () -> Unit, enabled: Boolean, loadState: LoadState
+) {
+
+    Button(
+        onClick = onClick,
+        enabled = enabled && loadState != LoadState.Loading,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        if (loadState == LoadState.Loading) {
+            // Animated loading icon
+            CircularProgressIndicator(
+                modifier = Modifier.size(18.dp),
+                strokeWidth = 2.dp,
+            )
+        } else {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Login,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = "Continue", style = MaterialTheme.typography.labelLarge
         )
+    }
+}
+
+
+//@Preview
+//@Composable
+//fun LoginContentPreview() {
+//    CCSWTheme {
+//        LoginContent(
+//            modifier = Modifier.fillMaxSize(),
+//            showRationale = false,
+//            onButtonClick = {},
+//            userId = "123456789",
+//            updateUserId = {},
+//            onRationaleClick = {},
+//            loadState = LoadState.None
+//        )
+//    }
+//}
+
+@Preview
+@Composable
+fun ContinueButtonPreview() {
+    CCSWTheme {
+//        ContinueButton(
+//            onClick = {},
+//            enabled = true,
+//            loadState = LoadState.None
+//        )
+        Text("a")
     }
 }

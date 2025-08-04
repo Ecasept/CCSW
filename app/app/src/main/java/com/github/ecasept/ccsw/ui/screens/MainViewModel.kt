@@ -14,7 +14,7 @@ open class MainViewModel @JvmOverloads constructor(
     application: Application,
     private val dataStore: PreferencesDataStore = PreferencesDataStore(application)
 ) : AndroidViewModel(application) {
-    open val prefs: StateFlow<AppPreferences?> = dataStore.prefs.stateIn(
+    val prefs: StateFlow<AppPreferences?> = dataStore.prefs.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null

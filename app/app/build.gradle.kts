@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.services)
 }
 
 // Task to generate config constants from config.jsonc
@@ -12,15 +13,15 @@ tasks.register("generateConfigConstants") {
     val configFile = File(rootProject.projectDir, "../config.jsonc")
     val outputDir = File("$buildDir/generated/source/config")
     val outputFile = File(outputDir, "com/github/ecasept/ccsw/data/preferences/GeneratedConfig.kt")
-    
+
     inputs.file(configFile)
     outputs.file(outputFile)
-    
+
     doLast {
         if (!configFile.exists()) {
             throw GradleException("Config file not found: ${configFile.absolutePath}")
         }
-        
+
         // Read and parse the JSONC file (remove comments)
         val configContent = configFile.readText()
             .lines().joinToString("\n") { line ->
@@ -34,11 +35,13 @@ tasks.register("generateConfigConstants") {
             }
 
         val json = JsonSlurper().parseText(configContent) as Map<String, Any>
-        val serverUrl = json["serverUrl"]?.toString() ?: throw GradleException("Missing 'serverUrl' in config.jsonc")
-        
+        val serverUrl = json["serverUrl"]?.toString()
+            ?: throw GradleException("Missing 'serverUrl' in config.jsonc")
+
         // Generate Kotlin file
         outputDir.mkdirs()
-        outputFile.writeText("""
+        outputFile.writeText(
+            """
 package com.github.ecasept.ccsw.data.preferences
 
 /**
@@ -48,8 +51,9 @@ package com.github.ecasept.ccsw.data.preferences
 object GeneratedConfig {
     const val DEFAULT_SERVER_URL = "$serverUrl"
 }
-""".trimIndent())
-        
+""".trimIndent()
+        )
+
         println("Generated config constants: DEFAULT_SERVER_URL = $serverUrl")
     }
 }
@@ -91,11 +95,12 @@ android {
     buildFeatures {
         compose = true
     }
-    
+
     // Add generated source directory
     sourceSets {
         getByName("main") {
             java.srcDirs("$buildDir/generated/source/config")
+            res.srcDirs("src/main/res", "src/main/res/goods")
         }
     }
 }
@@ -130,6 +135,15 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // FCM
+    implementation(platform(libs.google.firebase.bom))
+    implementation(libs.firebase.messaging)
+
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.retrofit.kotlinx.serialization)
 
     // Testing
     testImplementation(libs.junit)

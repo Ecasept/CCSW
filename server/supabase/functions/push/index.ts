@@ -2,11 +2,13 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { JWT } from 'npm:google-auth-library@9'
 import serviceAccount from '../service-account.json' with { type: 'json' }
 import { Database } from "./database.types.ts";
+import { Action } from "./types.ts";
 
 interface Notification {
-    id: string
-    user_id: string
-    body: string
+    id: string,
+    user_id: string,
+    created_at: string,
+    actions: Action[]
 }
 
 interface WebhookPayload {
@@ -63,10 +65,11 @@ Deno.serve(async (req) => {
             body: JSON.stringify({
                 message: {
                     token: fcmToken,
-                    notification: {
-                        title: `Notification from Supabase`,
-                        body: payload.record.body,
-                    },
+                    data: {
+                        created_at: payload.record.created_at,
+                        id: payload.record.id,
+                        actions: JSON.stringify(payload.record.actions),
+                    }
                 },
             }),
         }

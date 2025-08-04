@@ -25,7 +25,7 @@ import com.github.ecasept.ccsw.ui.theme.CCSWTheme
 
 @Composable
 fun SettingsScreen(
-    onBackClick: () -> Unit,
+    onBackNav: () -> Unit,
     viewModel: SettingsViewModel = viewModel()
 ) {
     val prefs by viewModel.prefs.collectAsStateWithLifecycle()
@@ -35,7 +35,7 @@ fun SettingsScreen(
             MainTopAppBar(
                 title = "Settings",
                 navigationIcon = Icons.AutoMirrored.Filled.ArrowBack,
-                onNavigationIconClick = onBackClick,
+                onNavigationIconClick = onBackNav,
             )
         },
     ) { innerPadding ->

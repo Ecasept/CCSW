@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.github.ecasept.ccsw.network.ServerUrlStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -24,9 +25,11 @@ class PreferencesDataStore(private val context: Context) {
     val prefs: Flow<AppPreferences> = context.dataStore.data.map { preferences ->
         AppPreferences(
             userId = preferences[PreferencesKeys.USER_ID],
-            serverUrl = preferences[PreferencesKeys.SERVER_URL] ?: GeneratedConfig.DEFAULT_SERVER_URL
+            serverUrl = preferences[PreferencesKeys.SERVER_URL]
+                ?: GeneratedConfig.DEFAULT_SERVER_URL
         )
     }
+    val isLoggedIn = prefs.map { it.userId != null }
 
     suspend fun updateUserId(userId: String?) {
         context.dataStore.edit { preferences ->
@@ -42,5 +45,7 @@ class PreferencesDataStore(private val context: Context) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SERVER_URL] = serverUrl
         }
+        // Update server url for api client
+        ServerUrlStorage.serverUrl = serverUrl
     }
 }

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">CCSW</string>
+    <string name="default_notification_channel_id">action_notification</string>
 </resources>
