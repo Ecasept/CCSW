@@ -5,8 +5,8 @@ import { errorResponse, successResponse } from "../utils";
 // Schema for goodHistory query parameters
 const GoodHistoryQuerySchema = z.object({
     userId: z.string().min(1),
-    limit: z.number().int().min(1).max(100).default(5),
-    offset: z.number().int().min(0).default(0)
+    limit: z.coerce.number().int().min(1).max(100).default(5),
+    offset: z.coerce.number().int().min(0).default(0)
 });
 
 export async function goodHistory(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -25,6 +25,7 @@ export async function goodHistory(request: Request, env: Env, ctx: ExecutionCont
     // Validate query parameters
     const validation = GoodHistoryQuerySchema.safeParse(queryParams);
     if (!validation.success) {
+    	console.error("Invalid query parameters:", validation.error);
         return errorResponse("Invalid query parameters", 400);
     }
 

@@ -4,19 +4,27 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -34,20 +42,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastMapIndexed
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.ecasept.ccsw.data.Action
 import com.github.ecasept.ccsw.data.ActionType
+import com.github.ecasept.ccsw.data.Good
 import com.github.ecasept.ccsw.data.GoodHistory
+import com.github.ecasept.ccsw.data.GoodHistoryEntry
+import com.github.ecasept.ccsw.data.Snapshot
+import com.github.ecasept.ccsw.data.SnapshotEntry
+import com.github.ecasept.ccsw.data.getAllGoods
 import com.github.ecasept.ccsw.data.getGood
 import com.github.ecasept.ccsw.fcm.showActionNotification
 import com.github.ecasept.ccsw.ui.components.MainTopAppBar
+import com.github.ecasept.ccsw.ui.theme.CCSWTheme
+import java.time.OffsetDateTime
 
 @Composable
 fun HomeScreen(
-    onSettingsNav: () -> Unit,
-    onLogoutNav: () -> Unit,
-    viewModel: LoginViewModel = viewModel()
+    onSettingsNav: () -> Unit, onLogoutNav: () -> Unit, viewModel: LoginViewModel = viewModel()
 ) {
 
     val state = viewModel.homeUiState.collectAsStateWithLifecycle().value
@@ -56,38 +70,41 @@ fun HomeScreen(
     val hideDropdownMenu = { dropdownMenuExpanded = false }
     val showDropdownMenu = { dropdownMenuExpanded = true }
 
+    LaunchedEffect(Unit) {
+        viewModel.getHomeData()
+    }
+
     Scaffold(
         topBar = {
-            MainTopAppBar(
-                title = "CCSW",
-                actions = {
-                    IconButton(showDropdownMenu) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Options"
-                        )
-                    }
-                    HomeDropdownMenu(
-                        hideDropdownMenu,
-                        onSettingsNav,
-                        { viewModel.logout(onLogoutNav) },
-                        dropdownMenuExpanded
+            MainTopAppBar(title = "CCSW", actions = {
+                IconButton(showDropdownMenu) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert, contentDescription = "Options"
                     )
                 }
-            )
+                HomeDropdownMenu(
+                    hideDropdownMenu,
+                    onSettingsNav,
+                    { viewModel.logout(onLogoutNav) },
+                    dropdownMenuExpanded
+                )
+            })
         },
     ) { innerPadding ->
         when (state.loadState) {
             is LoadState.Loading -> HomeScreenLoading(Modifier.padding(innerPadding))
             is LoadState.Failure -> HomeScreenError(
                 state.loadState.message,
-                Modifier.padding(innerPadding)
+                Modifier.padding(innerPadding),
+                state.loadState.isRefreshing,
+                viewModel::refresh
             )
 
             is LoadState.Loaded -> HomeScreenContent(
                 state.loadState.data,
                 Modifier.padding(innerPadding),
-                viewModel::getHomeData
+                state.loadState.isRefreshing,
+                viewModel::refresh,
             )
         }
     }
@@ -96,66 +113,115 @@ fun HomeScreen(
 @Composable
 fun HomeScreenLoading(modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier
+            .padding(16.dp)
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         CircularProgressIndicator(
-            modifier = Modifier.size(48.dp),
-            color = Color.Unspecified
+            modifier = Modifier.size(48.dp), color = Color.Unspecified
         )
         Text("Loading goods...")
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreenError(
     message: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {}
 ) {
-    Column(
-        modifier = modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        modifier = modifier
     ) {
-        Text("Error loading goods:")
-        Text(message)
+        LazyColumn(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            items(2) { i ->
+                when (i) {
+                    0 -> Text("Error loading goods:")
+                    1 -> Text(message)
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreenContent(
+    snapshots: List<Snapshot>,
+    modifier: Modifier = Modifier,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit
+) {
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        modifier = modifier
+            .padding(16.dp)
+            .fillMaxSize()
+    ) {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(getAllGoods().fastMapIndexed { i, g -> Pair(i, g) }) { (index, good) ->
+                // Get the snapshot entry for this good from every snapshot
+                val history = snapshots.mapNotNull { snapshot ->
+                    snapshot.goods.getOrNull(index)?.let { entry ->
+                        GoodHistoryEntry(
+                            timestamp = snapshot.timestamp,
+                            value = entry.value,
+                            bought = entry.bought
+                        )
+                    }
+                }
+                GoodCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    good = good,
+                    history = history
+                )
+
+            }
+        }
     }
 }
 
 @Composable
-fun HomeScreenContent(
-    data: List<GoodHistory>,
+fun GoodCard(
     modifier: Modifier = Modifier,
-    onRefresh: () -> Unit
+    good: Good,
+    history: GoodHistory,
 ) {
-    Column(
-        modifier = modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text("Recent Good History", fontWeight = FontWeight.Bold)
-        if (data.isEmpty()) {
-            Text("No recent good history available.")
-        } else {
-            data.forEach { history ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Icon(
-                        painter = painterResource(id = history.good.res),
-                        contentDescription = "Good Icon",
-                        modifier = Modifier.size(24.dp),
-                        tint = Color.Unspecified
-                    )
-                    Text("${history.good.symbol}: ${history.value}$")
-                }
+    Card(modifier) {
+        Row(
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Icon(
+                painter = painterResource(id = good.res),
+                contentDescription = "Good Icon",
+                modifier = Modifier.size(48.dp),
+                tint = Color.Unspecified,
+            )
+            Column(
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(good.symbol)
+                Text("Price: ${history[0].value}$")
+                Text("Bought: ${history[0].bought}%")
             }
         }
-        Button(onClick = onRefresh) {
-            Text("Refresh")
-        }
-        DebugNotification()
     }
 }
 
@@ -167,20 +233,14 @@ fun HomeDropdownMenu(
     expanded: Boolean
 ) {
     DropdownMenu(expanded, onDismissRequest) {
-        DropdownMenuItem(
-            text = { Text("Settings") },
-            onClick = {
-                onDismissRequest()
-                onPrefClick()
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Logout") },
-            onClick = {
-                onDismissRequest()
-                onLogoutClick()
-            }
-        )
+        DropdownMenuItem(text = { Text("Settings") }, onClick = {
+            onDismissRequest()
+            onPrefClick()
+        })
+        DropdownMenuItem(text = { Text("Logout") }, onClick = {
+            onDismissRequest()
+            onLogoutClick()
+        })
     }
 }
 
@@ -209,28 +269,25 @@ fun DebugNotification(modifier: Modifier = Modifier) {
                 tint = Color.Unspecified,
             )
             Text(
-                text = good.symbol,
-                modifier = Modifier.padding(8.dp)
+                text = good.symbol, modifier = Modifier.padding(8.dp)
             )
         }
-        Text(
-            buildAnnotatedString {
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                    when (type) {
-                        ActionType.SELL -> append("Sell")
-                        ActionType.BUY -> append("Buy")
-                    }
-                }
-                append(" for ")
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append("$value$")
-                }
-                append(" after passing threshold of ")
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append("$threshold$")
+        Text(buildAnnotatedString {
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                when (type) {
+                    ActionType.SELL -> append("Sell")
+                    ActionType.BUY -> append("Buy")
                 }
             }
-        )
+            append(" for ")
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                append("$value$")
+            }
+            append(" after passing threshold of ")
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                append("$threshold$")
+            }
+        })
         Row {
 
             Button(onClick = {
@@ -250,13 +307,8 @@ fun DebugNotification(modifier: Modifier = Modifier) {
                 onClick = {
                     showActionNotification(
                         Action(
-                            goodId,
-                            value,
-                            threshold,
-                            type
-                        ),
-                        (0..1000000).random().toString(),
-                        context
+                            goodId, value, threshold, type
+                        ), (0..1000000).random().toString(), context
                     )
                 },
             ) {
@@ -268,8 +320,27 @@ fun DebugNotification(modifier: Modifier = Modifier) {
 }
 
 
-@Preview
+@Preview(apiLevel = 34, showBackground = true)
 @Composable
-fun HomeScreenPreview() {
-    HomeScreen({}, {})
+fun HomeScreenContentPreview() {
+    CCSWTheme {
+        HomeScreenContent(
+            snapshots = listOf(Snapshot(
+                timestamp = OffsetDateTime.now(),
+                goods = getAllGoods().map {
+                    SnapshotEntry(value = 200.0, bought = true)
+                }
+            )
+            ),
+            modifier = Modifier.fillMaxSize(),
+            isRefreshing = false,
+            onRefresh = {}
+        )
+    }
+}
+
+@Preview(apiLevel = 34)
+@Composable
+fun Test() {
+    Text("abc")
 }

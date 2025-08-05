@@ -21,7 +21,7 @@ data class Good(
     val res: Int,
 )
 
-val goods = listOf(
+private val goods = listOf(
     Good("Farm", "Cereals", "CRL", R.drawable.good_00),
     Good("Mine", "Chocolate", "CHC", R.drawable.good_01),
     Good("Factory", "Butter", "BTR", R.drawable.good_02),
@@ -41,3 +41,7 @@ val goods = listOf(
     Good("Cortex baker", "Publicists", "PBL", R.drawable.good_16),
     Good("You", "<Your name>", "YOU", R.drawable.good_17)
 )
+
+fun getAllGoods(): List<Good> {
+    return goods
+}

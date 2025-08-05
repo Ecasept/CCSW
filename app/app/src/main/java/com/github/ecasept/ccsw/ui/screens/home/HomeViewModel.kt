@@ -1,9 +1,10 @@
 package com.github.ecasept.ccsw.ui.screens.home
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.ecasept.ccsw.data.GoodHistory
+import com.github.ecasept.ccsw.data.Snapshot
 import com.github.ecasept.ccsw.data.preferences.PreferencesDataStore
 import com.github.ecasept.ccsw.network.createAPI
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,9 +31,42 @@ open class LoginViewModel @JvmOverloads constructor(
         }
     }
 
-    private fun getHomeData() {
+    fun refresh() {
+        getHomeData(isRefresh = true)
+    }
+
+    private fun startRefresh() {
+        _homeUiState.update { old ->
+            when (old.loadState) {
+                is LoadState.Loading -> old.copy(
+                    loadState = LoadState.Failure("Can't refresh while loading, how did you even manage to do this???")
+                )
+
+                is LoadState.Failure -> old.copy(
+                    loadState = old.loadState.copy(
+                        isRefreshing = true
+                    )
+                )
+
+                is LoadState.Loaded -> old.copy(
+                    loadState = old.loadState.copy(
+                        isRefreshing = true
+                    )
+                )
+            }
+        }
+    }
+
+    fun getHomeData(isRefresh: Boolean = false) {
         viewModelScope.launch {
-            _homeUiState.update { it.copy(loadState = LoadState.Loading) }
+            if (isRefresh) {
+                startRefresh()
+
+            } else {
+                _homeUiState.update {
+                    it.copy(loadState = LoadState.Loading)
+                }
+            }
 
             val userId = runBlocking {
                 dataStore.prefs.first().userId
@@ -41,31 +75,27 @@ open class LoginViewModel @JvmOverloads constructor(
                 _homeUiState.update { it.copy(loadState = LoadState.Failure("You are not logged in.")) }
                 return@launch
             }
-            val response = apiClient.getGoodHistory(userId, limit = 5, offset = 0)
-            if (!response.isSuccessful) {
-                _homeUiState.update {
-                    it.copy(
-                        loadState = LoadState.Failure(
-                            "Failed to load home data: ${
-                                response.errorBody()?.string()
-                            }"
-                        )
-                    )
+            val response = apiClient.getGoodHistory(userId, limit = 5, offset = 0).on(
+                success = { data ->
+                    Log.d("HomeViewModel", data.toString())
+                    _homeUiState.update {
+                        it.copy(loadState = LoadState.Loaded(data))
+                    }
+                },
+                error = { error ->
+                    _homeUiState.update {
+                        it.copy(loadState = LoadState.Failure(error))
+                    }
                 }
-            } else {
-                val data = response.body() ?: emptyList()
-                _homeUiState.update { it.copy(loadState = LoadState.Loaded(data)) }
-            }
+            )
         }
     }
-
-
 }
 
 sealed class LoadState() {
     data object Loading : LoadState()
-    class Failure(val message: String) : LoadState()
-    class Loaded(val data: List<GoodHistory>) : LoadState()
+    data class Failure(val message: String, val isRefreshing: Boolean = false) : LoadState()
+    data class Loaded(val data: List<Snapshot>, val isRefreshing: Boolean = false) : LoadState()
 }
 
 data class HomeUiState(

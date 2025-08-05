@@ -13,7 +13,7 @@ import java.time.OffsetDateTime
  */
 object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(
-        "com.github.ecasept.ccsw", PrimitiveKind.STRING
+        "com.github.ecasept.ccsw.OffsetDateTime", PrimitiveKind.STRING
     )
 
     override fun serialize(encoder: Encoder, value: OffsetDateTime) {

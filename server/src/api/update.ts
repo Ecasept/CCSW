@@ -31,5 +31,5 @@ export async function update(request: Request, env: Env, ctx: ExecutionContext):
         return response;
     }
     // Return success response
-    return successResponse();
+    return successResponse("Data updated successfully");
 }

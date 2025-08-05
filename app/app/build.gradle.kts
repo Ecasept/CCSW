@@ -63,7 +63,7 @@ object GeneratedConfig {
 
 android {
     namespace = "com.github.ecasept.ccsw"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.github.ecasept.ccsw"

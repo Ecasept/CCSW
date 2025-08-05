@@ -26,7 +26,7 @@ export const DataPushSchema = z.object({
     actions: z.array(ActionSchema).max(GOOD_COUNT)
 });
 
-export const RegisterSchema = z.object({
+export const TokenSendSchema = z.object({
     userId: z.string().min(1),
     fcmToken: z.string().min(1),
 });

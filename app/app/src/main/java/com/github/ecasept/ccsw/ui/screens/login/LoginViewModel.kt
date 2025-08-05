@@ -26,26 +26,21 @@ open class LoginViewModel @JvmOverloads constructor(
                 val token = task.result
                 val userId = _loginState.value.userId
                 viewModelScope.launch {
-                    val response = apiClient.registerToken(token, userId)
-                    if (!response.isSuccessful) {
-                        _loginState.update {
-                            it.copy(
-                                loadState = LoadState.Failure(
-                                    "Login failed: Failed to register FCM token with server."
-                                )
-                            )
+                    apiClient.registerToken(token, userId).onSuspend(
+                        success = {
+                            dataStore.updateUserId(_loginState.value.userId)
+                            _loginState.update {
+                                it.copy(loadState = LoadState.None)
+                            }
+                            navigate()
+                        },
+                        error = { error ->
+                            Log.e("LoginViewModel", "Login failed: $error")
+                            _loginState.update {
+                                it.copy(loadState = LoadState.Failure("Login failed: $error"))
+                            }
                         }
-                        Log.e(
-                            "LoginViewModel",
-                            "Failed to register FCM token: ${response.errorBody()?.string()}"
-                        )
-                        return@launch
-                    }
-                    dataStore.updateUserId(_loginState.value.userId)
-                    _loginState.update {
-                        it.copy(loadState = LoadState.None)
-                    }
-                    navigate()
+                    )
                 }
             } else {
                 _loginState.update {

@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { geminiPrompt, geminiResponseSchema, ImageProcessSchema } from "../types";
 import { ensureRequest, errorResponse, successResponse } from "../utils";
-import { mime } from "zod/v4";
+import { mime, success } from "zod/v4";
 
 export async function processImg(
     request: Request,
@@ -40,17 +40,9 @@ export async function processImg(
     });
     const parsed = response.text
     if (!parsed) {
-        return errorResponse("Failed to get response from Gemini")
+        return errorResponse("Failed to get response from Gemini", 500);
     } else if (parsed == "null") {
-        return errorResponse("Could not parse image")
+        return errorResponse("Could not parse image", 400);
     }
-    return new Response(JSON.stringify({
-        success: true,
-        data: JSON.parse(parsed)
-    }), {
-        headers: {
-            "Content-Type": "application/json",
-        },
-        status: 200,
-    });
+    return successResponse(parsed);
 }

@@ -13,9 +13,9 @@
 
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "./database.types";
-import { initSupabaseClient } from "./utils";
+import { errorResponse, initSupabaseClient } from "./utils";
 import { update } from "./api/update";
-import { register } from "./api/register";
+import { routeTokenRequest } from "./api/token";
 import { processImg } from "./api/process";
 import { goodHistory } from "./api/goodHistory";
 
@@ -30,14 +30,14 @@ export default {
                 return await update(request, env, ctx);
             case "/api/register":
                 initSupabaseClient(env);
-                return await register(request, env, ctx);
+                return await routeTokenRequest(request, env, ctx);
             case "/api/process":
                 return await processImg(request, env, ctx);
             case "/api/goodHistory":
                 initSupabaseClient(env);
                 return await goodHistory(request, env, ctx);
             default:
-                return new Response("Not Found", { status: 404 });
+                return errorResponse("Not Found", 404);
         }
     },
 } satisfies ExportedHandler<Env>;

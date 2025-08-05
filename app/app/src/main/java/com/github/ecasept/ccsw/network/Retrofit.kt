@@ -27,8 +27,10 @@ class HostSelectionInterceptor : Interceptor {
         val serverUrl = ServerUrlStorage.serverUrl.toHttpUrlOrNull()
             ?: throw IllegalStateException("Invalid server URL: ${ServerUrlStorage.serverUrl}")
         val oldPath = originalRequest.url.encodedPath
+        val oldQuery = originalRequest.url.query
         val newUrl = serverUrl.newBuilder()
             .encodedPath(oldPath) // Preserve the original path
+            .query(oldQuery) // Preserve the original query parameters
             .build()
 
         val newRequest = originalRequest.newBuilder()
