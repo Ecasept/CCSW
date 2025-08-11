@@ -100,7 +100,7 @@ android {
     sourceSets {
         getByName("main") {
             java.srcDirs("$buildDir/generated/source/config")
-            res.srcDirs("src/main/res", "src/main/res/goods")
+            res.srcDirs("src/main/res", "src/main/goodsRes")
         }
     }
 }
