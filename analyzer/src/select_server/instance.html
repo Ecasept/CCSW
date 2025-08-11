@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCSW Instance Configuration</title>
+    <style>
+        :root {
+            --bg-color: #373a34;
+            --text-color: white;
+            --button-color: #4CAF50;
+            --button-secondary: #008CBA;
+            --button-danger: #f44336;
+            --border-color: #555;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #373a34;
+                --text-color: white;
+                --button-color: #4CAF50;
+                --button-secondary: #008CBA;
+                --button-danger: #f44336;
+                --border-color: #555;
+            }
+        }
+
+        html {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .section {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .section h2 {
+            margin-top: 0;
+            color: var(--button-color);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: opacity 0.2s;
+        }
+
+        .button:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .button-primary {
+            background-color: var(--button-color);
+            color: white;
+        }
+
+        .button-secondary {
+            background-color: var(--button-secondary);
+            color: white;
+        }
+
+        .button-danger {
+            background-color: var(--button-danger);
+            color: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .status-success {
+            background-color: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+        }
+
+        .status-error {
+            background-color: rgba(244, 67, 54, 0.2);
+            border: 1px solid #f44336;
+        }
+
+        .status-info {
+            background-color: rgba(0, 140, 186, 0.2);
+            border: 1px solid #008CBA;
+        }
+
+        .manual-instructions {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        code {
+            font-family: monospace;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 6px;
+        }
+
+        .button-small {
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .input-with-button {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .input-with-button input {
+            flex: 1;
+            width: auto;
+        }
+
+        .input-with-button button {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>CCSW Instance Configuration</h1>
+        <p>You haven't configured an instance in the config file. Please choose one of the following options:</p>
+
+        <!-- Create New Instance -->
+        <div class="section">
+            <h2>Create a New Instance</h2>
+            <p>This will create a new instance on the remote server and automatically add the credentials to your
+                config.</p>
+
+            <div class="form-group">
+                <label for="new-instance-name">Instance Name:</label>
+                <input type="text" id="new-instance-name" placeholder="Enter a name for your instance" />
+            </div>
+
+            <div class="form-group">
+                <label for="new-instance-id">Instance ID</label>
+                <div class="input-with-button">
+                    <input type="text" id="new-instance-id" placeholder="auto-generated from name" maxlength="50"
+                        pattern="^[a-z0-9-]{1,50}$" required />
+                    <button type="button" class="button button-secondary button-small hidden"
+                        id="reset-id-btn">Reset</button>
+                </div>
+                <div class="helper-text">
+                    Restrictions: lowercase letters, numbers, and hyphens only; cannot start or end with a hyphen; max
+                    50 characters.
+                </div>
+            </div>
+
+            <button class="button button-primary" id="create-instance-btn">Create Instance</button>
+            <div id="create-instance-status"></div>
+            <div id="create-instance-success" class="hidden">
+                <div class="status-message status-success">
+
+                    <p>Instance ID: <code id="created-instance-id"></code></p>
+                    <p>API Key: <code id="created-api-key"></code></p>
+                    <p>Access Code: <code id="created-access-code"></code></p>
+                    <p><strong>⚠️ Warning:</strong> Save these credentials now; they will not be shown again after
+                        login.
+                    </p>
+                </div>
+                <br>
+                <button class="button button-primary" id="login-with-created-btn">Login With These Credentials</button>
+            </div>
+        </div>
+
+        <!-- Log in to Existing Instance -->
+        <div class="section">
+            <h2>Login to Existing Instance</h2>
+            <p>If you already have an instance, enter your credentials here.</p>
+
+            <div class="form-group">
+                <label for="existing-instance-id">Instance ID:</label>
+                <input type="text" id="existing-instance-id" placeholder="Enter your instance ID" />
+            </div>
+
+            <div class="form-group">
+                <label for="existing-api-key">API Key:</label>
+                <input type="password" id="existing-api-key" placeholder="Enter your API key" />
+            </div>
+
+            <button class="button button-secondary" id="login-btn">Login</button>
+            <div id="existing-instance-status"></div>
+        </div>
+
+        <!-- Manual Configuration -->
+        <div class="section">
+            <h2>Manual Configuration</h2>
+            <p>You can manually add the instance configuration to your config file.</p>
+
+            <button class="button button-secondary" id="show-manual-btn">Show Instructions</button>
+
+            <div id="manual-instructions" class="hidden">
+                <div class="manual-instructions">
+                    <p>Add these fields to <code>config.jsonc</code>:</p>
+                    <p><code>"instanceId": "your-instance-id"</code></p>
+                    <p><code>"apiKey": "your-api-key"</code></p>
+                    <p>Then click reload.</p>
+                </div>
+                <br>
+                <button class="button button-primary" id="reload-config-btn">Reload Config</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let idDirty = false;
+
+        function slugifyId(name) {
+            return name
+                .toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "")
+                .slice(0, 50);
+        }
+
+        function isValidId(id) {
+            if (!id) return false;
+            if (id.startsWith("-") || id.endsWith("-")) return false;
+            return /^[a-z0-9-]{1,50}$/.test(id);
+        }
+
+        function setIdValue(value) {
+            const idEl = document.getElementById("new-instance-id");
+            idEl.value = value;
+        }
+
+        function updateDirtyUI() {
+            const resetBtn = document.getElementById("reset-id-btn");
+            if (!resetBtn) return;
+            if (idDirty) {
+                resetBtn.classList.remove("hidden");
+            } else {
+                resetBtn.classList.add("hidden");
+            }
+        }
+
+        function updateSuggestedId() {
+            const nameEl = document.getElementById("new-instance-name");
+            const suggested = slugifyId(nameEl.value);
+            if (!idDirty) {
+                setIdValue(suggested);
+            }
+        }
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
+        }
+
+        function clearStatus(elementId) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = "";
+        }
+
+        async function reloadFlow() {
+            return fetch('/api/reload-config', {
+                method: 'POST'
+            }).then(r => r.json()).then(d => {
+                window.location.reload();
+            }).catch(e => {
+                showStatus('create-instance-status', 'Reload failed: ' + e.message, 'error');
+            });
+        }
+
+        async function createInstance() {
+            const instanceName = document.getElementById("new-instance-name").value.trim();
+            const idInput = document.getElementById("new-instance-id").value.trim();
+            const createBtn = document.getElementById("create-instance-btn");
+
+            if (!instanceName) {
+                showStatus("create-instance-status", "Please enter an instance name.", "error");
+                return;
+            }
+
+            if (!isValidId(idInput)) {
+                showStatus("create-instance-status", "Invalid instance id. Use lowercase letters, numbers, hyphens (cannot start or end with hyphen), max 50 chars.", "error");
+                return;
+            }
+
+            createBtn.disabled = true;
+            clearStatus("create-instance-status");
+            showStatus("create-instance-status", "Creating instance...", "info");
+
+            try {
+                const response = await fetch("/api/create-instance", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ name: instanceName, id: idInput })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus('create-instance-status', 'Instance created. Credentials shown below.', 'success');
+                    document.getElementById('created-instance-id').textContent = data.instance.id;
+                    document.getElementById('created-api-key').textContent = data.apiKey;
+                    document.getElementById('created-access-code').textContent = data.accessCode;
+                    document.getElementById('create-instance-success').classList.remove('hidden');
+                } else {
+                    showStatus("create-instance-status", data.error || "Failed to create instance.", "error");
+                }
+            } catch (error) {
+                showStatus("create-instance-status", `Error: ${error.message}`, "error");
+            } finally {
+                createBtn.disabled = false;
+            }
+        }
+
+        async function loginExisting() {
+            const instanceId = document.getElementById('existing-instance-id').value.trim();
+            const apiKey = document.getElementById('existing-api-key').value.trim();
+            const btn = document.getElementById('login-btn');
+
+            if (!instanceId || !apiKey) {
+                showStatus('existing-instance-status', 'Both fields required.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            clearStatus('existing-instance-status');
+            showStatus('existing-instance-status', 'Saving credentials...', 'info');
+
+            try {
+                const save = await fetch('/api/add-to-config', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ instanceId, apiKey })
+                });
+
+                if (!save.ok) {
+                    const d = await save.json();
+                    showStatus('existing-instance-status', d.error || 'Failed to update config', 'error');
+                } else {
+                    showStatus('existing-instance-status', 'Reloading & logging in...', 'info');
+                    await reloadFlow();
+                }
+            } catch (error) {
+                showStatus('existing-instance-status', `Error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function manualReload() {
+            const btn = document.getElementById('reload-config-btn');
+            btn.disabled = true;
+            btn.textContent = 'Reloading...';
+
+            try {
+                await reloadFlow();
+            } catch (e) {
+                btn.disabled = false;
+                btn.textContent = 'Reload Config';
+            }
+        }
+
+        async function loginWithCreated() {
+            const instanceId = document.getElementById('created-instance-id').textContent.trim();
+            const apiKey = document.getElementById('created-api-key').textContent.trim();
+            if (!instanceId || !apiKey) {
+                showStatus('create-instance-status', 'Missing created credentials.', 'error');
+                return;
+            }
+            showStatus('create-instance-status', 'Logging in with created credentials...', 'info');
+            try {
+                const save = await fetch('/api/add-to-config', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ instanceId, apiKey })
+                });
+                if (!save.ok) {
+                    const d = await save.json();
+                    showStatus('create-instance-status', d.error || 'Failed to update config', 'error');
+                    return;
+                }
+                showStatus('create-instance-status', 'Reloading & logging in...', 'info');
+                await reloadFlow();
+            } catch (e) {
+                showStatus('create-instance-status', 'Error: ' + e.message, 'error');
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('create-instance-btn').addEventListener('click', createInstance);
+            document.getElementById('login-btn').addEventListener('click', loginExisting);
+
+            document.getElementById("show-manual-btn").addEventListener("click", () => {
+                const instructions = document.getElementById("manual-instructions");
+                const btn = document.getElementById("show-manual-btn");
+
+                if (instructions.classList.contains("hidden")) {
+                    instructions.classList.remove("hidden");
+                    btn.textContent = "Hide Instructions";
+                    document.getElementById("reload-config-btn").addEventListener("click", manualReload);
+                } else {
+                    instructions.classList.add("hidden");
+                    btn.textContent = "Show Instructions";
+                }
+            });
+
+            // Live suggestion updates + dirty tracking
+            document.getElementById("new-instance-name").addEventListener("input", updateSuggestedId);
+            const idEl = document.getElementById("new-instance-id");
+            idEl.addEventListener("input", () => {
+                idDirty = true;
+                updateDirtyUI();
+            });
+
+            document.getElementById("reset-id-btn").addEventListener("click", (e) => {
+                e.preventDefault();
+                idDirty = false;
+                updateSuggestedId();
+                updateDirtyUI();
+            });
+
+            // Initialize
+            updateSuggestedId();
+            updateDirtyUI();
+
+            const createdBtn = document.getElementById('login-with-created-btn');
+            if (createdBtn) { createdBtn.addEventListener('click', loginWithCreated); }
+        });
+    </script>
+</body>
+
+</html>

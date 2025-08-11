@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCSW Instance Configuration</title>
+    <style>
+        :root {
+            --bg-color: #373a34;
+            --text-color: white;
+            --button-color: #4CAF50;
+            --button-secondary: #008CBA;
+            --border-color: #555;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #373a34;
+                --text-color: white;
+                --button-color: #4CAF50;
+                --button-secondary: #008CBA;
+                --border-color: #555;
+            }
+        }
+
+        html {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .section {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .section h2 {
+            margin-top: 0;
+            color: var(--button-color);
+        }
+
+        .button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: opacity 0.2s;
+        }
+
+        .button-primary {
+            background-color: var(--button-color);
+            color: white;
+        }
+
+        .button-secondary {
+            background-color: var(--button-secondary);
+            color: white;
+        }
+
+        .status-success {
+            background-color: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            padding: 15px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .status-error {
+            background-color: rgba(244, 67, 54, 0.2);
+            border: 1px solid #f44336;
+            padding: 15px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .status-message h2 {
+            margin-top: 0;
+        }
+
+        .instance-info {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(255, 255, 255, 0.08) 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            font-family: 'Courier New', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .instance-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--button-color), rgba(76, 175, 80, 0.3));
+        }
+
+        .instance-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .instance-id {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--button-color);
+            background: rgba(76, 175, 80, 0.1);
+            padding: 8px 12px;
+            border-radius: 16px;
+            display: inline-block;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>CCSW Instance Configuration</h1>
+        <div id="login-status"></div>
+        <div class="section">
+            <h2>Current Instance Information</h2>
+            <div class="instance-info">
+                <div class="instance-label">Instance ID</div>
+                <div class="instance-id">{{instance_id}}</div>
+            </div>
+            <p id="login-msg"></p>
+            <button id="to-bounds-btn" class="button button-primary hidden"
+                onclick="window.location.href='/bounds'">Continue to Bounds Selection</button>
+        </div>
+    </div>
+    <script>
+        (function () {
+            const successStr = "{{login_success}}"; // 'true' or 'false'
+            const success = successStr === 'true';
+            const errMsg = "{{login_error_message}}";
+            const statusDiv = document.getElementById('login-status');
+            const msgP = document.getElementById('login-msg');
+            const btn = document.getElementById('to-bounds-btn');
+            if (success) {
+                statusDiv.innerHTML = '<div class="status-success"><h2>✓ Instance Login Successful</h2><p>The analyzer is authenticated for your CCSW instance.</p></div>';
+                msgP.textContent = 'You can now select the area of the stock market on your screen';
+                btn.classList.remove('hidden');
+            } else {
+                statusDiv.innerHTML = '<div class="status-error"><h2>Login Failed</h2><p>' + (errMsg ? errMsg : 'Unknown error') + '</p></div>';
+                msgP.textContent = 'Fix your credentials in config.jsonc and restart the analyzer.';
+            }
+        })();
+    </script>
+</body>
+
+</html>

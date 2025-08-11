@@ -145,6 +145,10 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.retrofit.kotlinx.serialization)
 
+    // Vico
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

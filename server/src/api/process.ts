@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { geminiPrompt, geminiResponseSchema, ImageProcessSchema } from "../types";
 import { ensureRequest, errorResponse, successResponse } from "../utils";
 import { mime, success } from "zod/v4";
+import { verifyJWT } from "./auth/verify";
 
 export async function processImg(
     request: Request,
@@ -12,10 +13,15 @@ export async function processImg(
     if (res.success === false) {
         return res.response;
     }
-    const { image } = res.data;
+    const { image, instanceId } = res.data;
+
+    const authRes = await verifyJWT(request, env, "apiKey", instanceId);
+    if (authRes.success === false) {
+        return authRes.response;
+    }
 
     const ai = new GoogleGenAI({
-        apiKey: env.AI_STUIO_API_KEY,
+        apiKey: env.AI_STUDIO_API_KEY,
     });
 
     const contents = [
@@ -44,5 +50,5 @@ export async function processImg(
     } else if (parsed == "null") {
         return errorResponse("Could not parse image", 400);
     }
-    return successResponse(parsed);
+    return successResponse(JSON.parse(parsed));
 }

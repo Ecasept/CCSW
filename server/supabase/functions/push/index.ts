@@ -6,7 +6,7 @@ import { Action } from "./types.ts";
 
 interface Notification {
     id: string,
-    user_id: string,
+    instance_id: string,
     created_at: string,
     actions: Action[]
 }
@@ -30,24 +30,25 @@ function errorResponse(message: string, status: number = 400) {
     })
 }
 
+function successResponse<T>(data: T) {
+    return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+    })
+}
+
 Deno.serve(async (req) => {
     const payload: WebhookPayload = await req.json()
 
     const { data, error } = await supabase
-        .from('profiles')
-        .select('fcm_token')
-        .eq('id', payload.record.user_id)
-        .maybeSingle()
+        .from("devices")
+        .select("fcm_token")
+        .eq('instance_id', payload.record.instance_id)
 
     if (error) {
         console.error('Error fetching FCM token:', error)
         return errorResponse('Error fetching FCM token', 500)
-    } else if (!data || !data.fcm_token) {
-        console.warn('No FCM token found for user:', payload.record.user_id)
-        return errorResponse('No FCM token found for user', 404)
     }
-
-    const fcmToken = data.fcm_token;
 
     const accessToken = await getAccessToken({
         clientEmail: serviceAccount.client_email,
@@ -64,7 +65,7 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
                 message: {
-                    token: fcmToken,
+                    token: data[0].fcm_token,
                     data: {
                         created_at: payload.record.created_at,
                         id: payload.record.id,

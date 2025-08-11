@@ -2,3 +2,4 @@
 SUPABASE_KEY=<your secret key>
 SUPABASE_URL=https://<your-project-id>.supabase.co
 AI_STUDIO_API_KEY=<your api key>
+JWT_SECRET=<securely and randomly generated secret>

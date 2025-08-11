@@ -5,13 +5,14 @@
     // 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99
     "sellQuartile": 0.75,
     "buyQuartile": 0.25,
-    "userId": "4uo234324",
-    "serverUrl": "http://localhost:8787",
-    // "serverUrl": "https://cookie-clicker-stock-watcher.ecasept.workers.dev",
-    "checkInterval": 60,
-    "useTestImage": true,
+    //"serverUrl": "http://192.168.178.50:8787",
+    "serverUrl": "https://cookie-clicker-stock-watcher.ecasept.workers.dev",
+    "checkInterval": 600,
     "simulationYears": 10,
     "boundsServerPort": 8439,
-    "useLegacyOcr": false,
-    "mockData": true
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) CookieClickerStockWatcher/1.0",
+    // Debug options
+    "useTestImage": false,
+    "mockData": false,
+
 }

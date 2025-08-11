@@ -28,11 +28,15 @@ enum class RequestSource {
     BUTTON, RATIONALE
 }
 
-open class PermissionManager(private val onContinue: () -> Unit, private val skipRequest: Boolean) :
+open class PermissionManager<T>(
+    private val onContinue: (T) -> Unit,
+    private val skipRequest: Boolean
+) :
     ViewModel() {
 
     private var startPermissionRequest = 0L
     private var requestSource: RequestSource? = null
+    private var continueParam: T? = null
 
     /** Called when the user has granted or denied the permission */
     fun onResult(granted: Boolean) {
@@ -41,7 +45,7 @@ open class PermissionManager(private val onContinue: () -> Unit, private val ski
         requestSource = null
         if (granted) {
             Log.d("PermissionManager", "Permission granted")
-            onContinue()
+            onContinue(continueParam!!)
         } else {
             if (System.currentTimeMillis() - startPermissionRequest < SYSTEM_DENY_THRESHOLD && rs == RequestSource.RATIONALE) {
                 Log.d("PermissionManager", "Permission request was auto-denied by the system")
@@ -73,27 +77,27 @@ open class PermissionManager(private val onContinue: () -> Unit, private val ski
             requestPermission()
         } else {
             // User wants to continue without permission
-            onContinue()
+            onContinue(continueParam!!)
         }
     }
 
     /** Called when the user clicks a button to request the permission */
-    fun onButtonClick() {
+    fun onButtonClick(param: T) {
         requestSource = RequestSource.BUTTON
+        continueParam = param
         requestPermission()
     }
 
     /** Called when the settings screen was opened */
     fun onSettingsOpened() {
         _permissionState.update { it.copy(navigateToSettings = false) }
-        //
         _permissionState.update { it.copy(askPermission = true) }
     }
 
     /** Requests the permission, or continues without it if skipRequest is true */
     private fun requestPermission() {
         if (skipRequest) {
-            onContinue()
+            onContinue(continueParam!!)
             return
         }
         _permissionState.update { it.copy(askPermission = true) }
@@ -104,8 +108,8 @@ open class PermissionManager(private val onContinue: () -> Unit, private val ski
     val permissionState = _permissionState.asStateFlow()
 }
 
-class PermissionManagerFactory(
-    private val onContinue: () -> Unit,
+class PermissionManagerFactory<T>(
+    private val onContinue: (T) -> Unit,
     private val skipRequest: Boolean
 ) :
     ViewModelProvider.Factory {
@@ -146,16 +150,16 @@ fun Activity.openAppSetting() {
  * - `onButtonClick`: Callback to be invoked when the permission should initially be requested
  */
 @Composable
-fun Permission(
-    onContinue: () -> Unit,
+fun <T> Permission(
+    onContinue: (T) -> Unit,
     permission: String?,
-    viewModel: PermissionManager = viewModel(
+    viewModel: PermissionManager<T> = viewModel(
         factory = PermissionManagerFactory(
             onContinue,
             permission == null
         )
     ),
-    content: @Composable (showRationale: Boolean, onRationaleClick: (Boolean) -> Unit, onButtonClick: () -> Unit) -> Unit
+    content: @Composable (showRationale: Boolean, onRationaleClick: (Boolean) -> Unit, onButtonClick: (T) -> Unit) -> Unit
 ) {
     val activity = LocalActivity.current
         ?: throw IllegalStateException("LoginScreen must be used within an Activity context")

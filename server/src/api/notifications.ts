@@ -1,11 +1,11 @@
-import { Action, DataPushSchema } from "../types";
+import { Action, DataPushSchema, InstanceId } from "../types";
 import { errorResponse, supabase } from "../utils";
 
-export async function sendPushNotification(userId: string, actions: Action[]) {
+export async function sendPushNotification(instanceId: InstanceId, actions: Action[]) {
     const { error } = await supabase
         .from("notifications")
         .insert({
-            user_id: userId,
+            instance_id: instanceId,
             actions: actions
         });
     if (error) {

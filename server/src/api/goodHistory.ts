@@ -1,10 +1,11 @@
 import { ensureMethod, ensureRequest, supabase } from "../utils";
 import { z } from 'zod';
 import { errorResponse, successResponse } from "../utils";
+import { verifyJWT } from "./auth/verify";
 
 // Schema for goodHistory query parameters
 const GoodHistoryQuerySchema = z.object({
-    userId: z.string().min(1),
+    instanceId: z.string().min(1),
     limit: z.coerce.number().int().min(1).max(100).default(5),
     offset: z.coerce.number().int().min(0).default(0)
 });
@@ -17,7 +18,7 @@ export async function goodHistory(request: Request, env: Env, ctx: ExecutionCont
 
     const url = new URL(request.url);
     const queryParams = {
-        userId: url.searchParams.get('userId'),
+        instanceId: url.searchParams.get('instanceId'),
         limit: url.searchParams.get('limit'),
         offset: url.searchParams.get('offset')
     };
@@ -25,17 +26,22 @@ export async function goodHistory(request: Request, env: Env, ctx: ExecutionCont
     // Validate query parameters
     const validation = GoodHistoryQuerySchema.safeParse(queryParams);
     if (!validation.success) {
-    	console.error("Invalid query parameters:", validation.error);
+        console.error("Invalid query parameters:", validation.error);
         return errorResponse("Invalid query parameters", 400);
     }
 
-    const { userId, limit, offset } = validation.data;
+    const { instanceId, limit, offset } = validation.data;
+
+    const authRes = await verifyJWT(request, env, "accessCode", instanceId);
+    if (authRes.success === false) {
+        return authRes.response;
+    }
 
     // Query the database for user's value history
     const { data, error } = await supabase
         .from("value_history")
         .select("timestamp, goods")
-        .eq("userId", userId)
+        .eq("instance_id", instanceId)
         .order("timestamp", { ascending: false })
         .range(offset, offset + limit - 1);
 

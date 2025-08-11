@@ -1,60 +1,29 @@
-import { DataPushSchema, TokenSendSchema } from "../types";
-import { ensureRequest, ensureSchema, errorResponse, successResponse, supabase } from "../utils";
+import { TokenSendSchema } from "../types";
+import { ensureRequest, errorResponse, successResponse, supabase } from "../utils";
+import { verifyJWT } from "./auth/verify";
 
-export async function routeTokenRequest(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    switch (request.method) {
-        case "POST":
-            return await register(request, env, ctx);
-        case "UPDATE":
-            return await updateToken(request, env, ctx);
-        default:
-            return errorResponse("Method Not Allowed", 405);
-    }
-}
-
-
-async function register(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+export async function addDeviceToken(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const res = await ensureRequest(request, "POST", TokenSendSchema);
     if (res.success === false) {
         return res.response;
     }
-    const { userId, fcmToken } = res.data;
+    const { instanceId, fcmToken } = res.data;
+    const authRes = await verifyJWT(request, env, "accessCode", instanceId);
+    if (authRes.success === false) {
+        return authRes.response;
+    }
 
-    // Insert registration data into the database
     const { error } = await supabase
-        .from("profiles")
-        .upsert({
-            id: userId,
+        .from("devices")
+        .insert({
+            instance_id: instanceId,
             fcm_token: fcmToken,
-        });
-
+        })
     if (error) {
-        console.error("Error inserting registration:", error);
-        return errorResponse("Failed to register device", 500);
+        if (error.code = "23505") {
+            return errorResponse("Duplicate token", 400)
+        }
+        return errorResponse("Failed to register device token", 500);
     }
-
-    // Return success response
-    return successResponse("Device registered successfully");
-}
-
-async function updateToken(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const res = await ensureRequest(request, "UPDATE", TokenSendSchema);
-    if (res.success === false) {
-        return res.response;
-    }
-    const { userId, fcmToken } = res.data;
-
-    // Update the FCM token in the database
-    const { error } = await supabase
-        .from("profiles")
-        .update({ fcm_token: fcmToken })
-        .eq("id", userId);
-
-    if (error) {
-        console.error("Error updating token:", error);
-        return errorResponse("Failed to update token", 500);
-    }
-
-    // Return success response
-    return successResponse("Token updated successfully");
+    return successResponse("Device token registered successfully");
 }

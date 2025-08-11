@@ -1,15 +1,23 @@
 import { Type } from '@google/genai';
 import { z } from 'zod';
+import { minimum } from 'zod/v4-mini';
 
 const GOOD_COUNT = 18; // Total number of stocks
 const GOOD_MIN = 1; // Minimum possible value for a stock
+
+export const InstanceIdSchema = z
+    .string()
+    .min(1, "ID is required")
+    .max(50, "ID must be at most 50 characters")
+    .regex(/^[a-z0-9-]+$/, "ID can only contain lowercase letters, numbers, and hyphens")
+    .refine((v) => !v.startsWith("-") && !v.endsWith("-"), "ID cannot start or end with a hyphen");
 
 // Action schema for stock recommendations
 export const ActionSchema = z.object({
     good: z.number().int().min(0).max(GOOD_COUNT - 1),
     value: z.number().min(GOOD_MIN), // Current value of the stock
     thresh: z.number().min(GOOD_MIN), // Threshold value (buy or sell threshold)
-    type: z.enum(['buy', 'sell']), // Action type (only buy/sell, no hold in Python code)
+    type: z.enum(['buy', 'sell', 'missed_buy', 'missed_sell']),
 });
 
 // Good item schema combining value and bought status
@@ -18,22 +26,43 @@ export const GoodSchema = z.object({
     bought: z.boolean() // Whether the stock is bought or not
 });
 
-// Main data push schema
-export const DataPushSchema = z.object({
-    userId: z.string().min(1),
-    timestamp: z.string().datetime({ offset: true }), // ISO 8601 format with timezone offset
-    goods: z.array(GoodSchema).length(GOOD_COUNT),
-    actions: z.array(ActionSchema).max(GOOD_COUNT)
+export const TokenSendSchema = z.object({
+    instanceId: InstanceIdSchema,
+    fcmToken: z.string().min(1),
 });
 
-export const TokenSendSchema = z.object({
-    userId: z.string().min(1),
-    fcmToken: z.string().min(1),
+// Main data push schema
+export const DataPushSchema = z.object({
+    timestamp: z.string().datetime({ offset: true }), // ISO 8601 format with timezone offset
+    goods: z.array(GoodSchema).length(GOOD_COUNT),
+    actions: z.array(ActionSchema).max(GOOD_COUNT),
+    instanceId: InstanceIdSchema,
 });
 
 export const ImageProcessSchema = z.object({
     image: z.string().min(1), // Base64 encoded image string
+    instanceId: InstanceIdSchema,
 });
+
+
+
+export const JWTSchema = z.union([
+    z.object({
+        type: z.literal("apiKey"),
+        instanceId: InstanceIdSchema,
+        iat: z.number().int().nonnegative(),
+    }),
+    z.object({
+        type: z.literal("accessCode"),
+        instanceId: InstanceIdSchema,
+        iat: z.number().int().nonnegative(),
+    }),
+]);
+
+export type JWTPayload = z.infer<typeof JWTSchema>;
+export type InstanceId = z.infer<typeof InstanceIdSchema>;
+export type ValidationResult<T> = { success: true; data: T } | { success: false; response: Response };
+
 
 // Infer TypeScript types from Zod schemas
 export type Action = z.infer<typeof ActionSchema>;
@@ -58,7 +87,10 @@ export const geminiResponseSchema = {
             items: {
                 type: Type.OBJECT,
                 properties: {
-                    value: { type: Type.NUMBER },
+                    value: {
+                        type: Type.NUMBER,
+                        minimum: GOOD_MIN,
+                    },
                     bought: { type: Type.BOOLEAN }
                 },
                 required: ["value", "bought"]
@@ -67,8 +99,8 @@ export const geminiResponseSchema = {
             maxItems: GOOD_COUNT,
             nullable: false,
         },
-        nullable: true,
-    }
+    },
+    nullable: true,
 }
 
 export const geminiPrompt = `

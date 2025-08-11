@@ -32,6 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.github.ecasept.ccsw.ui.theme.CCSWTheme
 
+/** Converts a [String] to a [TextFieldValue] with the selection set to the end of the string. */
+fun String.toTextFieldValue(): TextFieldValue {
+    return TextFieldValue(this, selection = TextRange(this.length))
+}
 
 /**
  * A dialog that allows the user to input a string value.
@@ -53,14 +57,7 @@ fun InputDialog(
     onDismiss: () -> Unit
 ) {
 
-    var text by remember {
-        mutableStateOf(
-            // Initialize the text field with the initial value and put the cursor at the end
-            TextFieldValue(
-                initialValue, selection = TextRange(initialValue.length)
-            )
-        )
-    }
+    var text by remember { mutableStateOf(initialValue.toTextFieldValue()) }
 
     val requester = remember { FocusRequester() }
     LaunchedEffect(Unit) {

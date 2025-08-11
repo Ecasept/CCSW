@@ -11,13 +11,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -26,6 +29,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,7 +37,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.ecasept.ccsw.ui.components.MainTopAppBar
 import com.github.ecasept.ccsw.ui.theme.CCSWTheme
-
 
 @Composable
 fun LoginScreen(
@@ -57,9 +60,15 @@ fun LoginScreen(
                     .padding(innerPadding)
                     .padding(16.dp),
                 showRationale,
-                onButtonClick,
-                state.userId,
-                viewModel::updateUserId,
+                { onButtonClick(Unit) },
+                state.instanceId,
+                state.accessCode,
+                state.serverUrl,
+                viewModel.isServerUrlDirty.collectAsStateWithLifecycle(false).value,
+                viewModel::resetServerUrl,
+                viewModel::updateInstanceId,
+                viewModel::updateAccessCode,
+                viewModel::updateServerUrl,
                 onRationaleClick,
                 state.loadState
             )
@@ -73,8 +82,14 @@ fun LoginContent(
     modifier: Modifier = Modifier,
     showRationale: Boolean,
     onButtonClick: () -> Unit,
-    userId: String,
-    updateUserId: (userId: String) -> Unit,
+    instanceId: String,
+    accessCode: String,
+    serverUrl: TextFieldValue,
+    isServerUrlDirty: Boolean,
+    resetServerUrl: () -> Unit,
+    updateInstanceId: (userId: String) -> Unit,
+    updateAccessCode: (accessCode: String) -> Unit,
+    updateServerUrl: (serverUrl: TextFieldValue) -> Unit,
     onRationaleClick: (Boolean) -> Unit,
     loadState: LoadState
 ) {
@@ -82,6 +97,8 @@ fun LoginContent(
     if (showRationale) {
         RationaleDialog(onRationaleClick)
     }
+
+    val isInfoEntered = instanceId.isNotBlank() && accessCode.isNotBlank()
 
     Column(
         modifier = modifier
@@ -108,35 +125,75 @@ fun LoginContent(
         )
 
         Text(
-            text = "Enter your user ID",
+            text = "Log in to the instance you created with the analyzer",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 4.dp),
             textAlign = TextAlign.Center
         )
 
-        Text(
-            text = "Use the same ID from your Python app configuration",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 24.dp),
-            textAlign = TextAlign.Center
-        )
-
         OutlinedTextField(
-            value = userId,
-            onValueChange = updateUserId,
-            label = { Text("User ID") },
+            value = instanceId,
+            onValueChange = updateInstanceId,
+            label = { Text("Instance ID") },
             singleLine = true,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
+                .widthIn(0.dp, 400.dp)
+                .fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         )
 
-        ContinueButton(
-            onClick = onButtonClick, enabled = userId.isNotBlank(), loadState = loadState
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = accessCode,
+            onValueChange = updateAccessCode,
+            label = { Text("Access Code") },
+            singleLine = true,
+            modifier = Modifier
+                .widthIn(0.dp, 400.dp)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = serverUrl,
+            onValueChange = updateServerUrl,
+            label = { Text("Server URL") },
+            singleLine = true,
+            modifier = Modifier
+                .widthIn(0.dp, 400.dp)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            suffix = {
+                if (isServerUrlDirty) {
+                    IconButton(
+                        onClick = resetServerUrl,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.RestartAlt,
+                            contentDescription = "Reset Server URL",
+                        )
+                    }
+                }
+            }
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        ContinueButton(
+            modifier = Modifier
+                .widthIn(0.dp, 400.dp)
+                .fillMaxWidth(),
+
+            onClick = onButtonClick,
+            isInfoEntered = isInfoEntered,
+            loadState = loadState
+        )
+
         if (loadState is LoadState.Failure) {
             Text(
                 text = loadState.message,
@@ -172,19 +229,18 @@ fun RationaleDialog(onRationaleClick: (Boolean) -> Unit) {
 
 @Composable
 fun ContinueButton(
-    onClick: () -> Unit, enabled: Boolean, loadState: LoadState
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    isInfoEntered: Boolean,
+    loadState: LoadState
 ) {
-
     Button(
         onClick = onClick,
-        enabled = enabled && loadState != LoadState.Loading,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
+        enabled = isInfoEntered && loadState !is LoadState.Loading,
+        modifier = modifier.height(48.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
         if (loadState == LoadState.Loading) {
-            // Animated loading icon
             CircularProgressIndicator(
                 modifier = Modifier.size(18.dp),
                 strokeWidth = 2.dp,
@@ -203,32 +259,66 @@ fun ContinueButton(
     }
 }
 
-
-//@Preview
-//@Composable
-//fun LoginContentPreview() {
-//    CCSWTheme {
-//        LoginContent(
-//            modifier = Modifier.fillMaxSize(),
-//            showRationale = false,
-//            onButtonClick = {},
-//            userId = "123456789",
-//            updateUserId = {},
-//            onRationaleClick = {},
-//            loadState = LoadState.None
-//        )
-//    }
-//}
-
-@Preview
+@Preview(apiLevel = 34, showBackground = true)
 @Composable
-fun ContinueButtonPreview() {
+fun LoginContentPreview() {
     CCSWTheme {
-//        ContinueButton(
-//            onClick = {},
-//            enabled = true,
-//            loadState = LoadState.None
-//        )
-        Text("a")
+        LoginContent(
+            modifier = Modifier.fillMaxSize(),
+            showRationale = false,
+            onButtonClick = {},
+            instanceId = "example-instance-id",
+            accessCode = "example-access-code",
+            serverUrl = TextFieldValue("https://example.com"),
+            isServerUrlDirty = true,
+            resetServerUrl = {},
+            updateInstanceId = {},
+            updateAccessCode = {},
+            updateServerUrl = {},
+            onRationaleClick = {},
+            loadState = LoadState.None
+        )
+    }
+}
+
+@Preview(apiLevel = 34, showBackground = true)
+@Composable
+fun ButtonsPreview() {
+    CCSWTheme {
+        Column(
+            modifier = Modifier
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text("No info entered")
+            ContinueButton(
+                onClick = {},
+                isInfoEntered = false,
+                loadState = LoadState.None,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text("Normal")
+            ContinueButton(
+                onClick = {},
+                isInfoEntered = true,
+                loadState = LoadState.None,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text("Loading")
+            ContinueButton(
+                onClick = {},
+                isInfoEntered = true,
+                loadState = LoadState.Loading,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text("Failure")
+            ContinueButton(
+                onClick = {},
+                isInfoEntered = true,
+                loadState = LoadState.Failure("Login failed"),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }

@@ -1,36 +1,31 @@
 package com.github.ecasept.ccsw.data
 
-import org.json.JSONObject
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 enum class ActionType {
-    SELL, BUY
+    @SerialName("buy")
+    BUY,
+
+    @SerialName("sell")
+    SELL,
+
+    @SerialName("missed_buy")
+    MISSED_BUY,
+
+    @SerialName("missed_sell")
+    MISSED_SELL,
 }
 
-class ActionException(override val message: String) : Exception(message)
-
+@Serializable
 data class Action(
+    @SerialName("good")
     val goodId: Int,
+    @SerialName("value")
     val value: Double,
+    @SerialName("thresh")
     val threshold: Double,
+    @SerialName("type")
     val type: ActionType,
-) {
-    companion object {
-        fun fromJson(json: JSONObject): Action {
-            val goodId = json.getInt("good")
-            val value = json.getDouble("value")
-            val thresh = json.getDouble("thresh")
-            val typeStr = json.getString("type")
-            val type = when (typeStr) {
-                "sell" -> ActionType.SELL
-                "buy" -> ActionType.BUY
-                else -> throw ActionException("Unknown action type: $typeStr")
-            }
-            return Action(
-                goodId = goodId,
-                value = value,
-                threshold = thresh,
-                type = type
-            )
-        }
-    }
-}
+)

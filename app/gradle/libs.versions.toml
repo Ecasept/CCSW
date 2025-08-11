@@ -15,8 +15,8 @@ googleServices = "4.4.3"
 firebaseBom = "34.0.0"
 firebaseMessaging = "25.0.0"
 retrofit = "2.9.0"
-constraintLayout = "2.2.1"
 retrofitSerialization = "3.0.0"
+vico = "2.1.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -51,6 +51,9 @@ firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 retrofit-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofitSerialization" }
+# Vico
+vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

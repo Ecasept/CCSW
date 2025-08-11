@@ -5,6 +5,8 @@ import android.util.Log
 import com.github.ecasept.ccsw.data.ApiResponse
 import com.github.ecasept.ccsw.data.Snapshot
 import com.github.ecasept.ccsw.data.preferences.PreferencesDataStore
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -14,6 +16,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Query
 
@@ -50,43 +53,90 @@ inline fun <reified T> Response<ApiResponse<T>>.toApiResponse(): ApiResponse<T> 
 typealias Res<T> = Response<ApiResponse<T>>
 
 class ApiClient(
-    private val api: API
+    private val api: API,
+    private val dataStore: PreferencesDataStore
 ) {
-    suspend fun registerToken(fcmToken: String, userId: String): ApiResponse<String> {
+
+    private suspend fun getSessionToken(): String? {
+        return runBlocking {
+            dataStore.prefs.first().sessionToken
+        }
+    }
+
+    private suspend fun getInstanceId(): String? {
+        return runBlocking {
+            dataStore.prefs.first().instanceId
+        }
+    }
+
+    /**
+     * Converts any object [body] to a [RequestBody] for use in Retrofit requests.
+     */
+    private inline fun <reified T> toRequestBody(body: T): RequestBody {
+        return Json.encodeToString(body)
+            .toRequestBody("application/json".toMediaType())
+    }
+
+    private fun authHeader(sessionToken: String): String {
+        return "Bearer $sessionToken"
+    }
+
+    suspend fun createSession(instanceId: String, accessCode: String): ApiResponse<String> {
         @Serializable
-        class RegisterTokenRequest(
-            val fcmToken: String, val userId: String
+        class Body(
+            val accessCode: String,
+            val instanceId: String,
+            val type: String,
         )
 
-        val body = RegisterTokenRequest(fcmToken, userId)
-        val json = Json.encodeToString(body)
-        val requestBody = json.toRequestBody("application/json".toMediaType())
+        val requestBody = toRequestBody(Body(accessCode, instanceId, "accessCode"))
+
         return dispatch {
-            api.registerToken(requestBody).toApiResponse()
+            api.createSession(requestBody)
+        }
+    }
+
+    suspend fun addDeviceToken(fcmToken: String, instanceId: String, sessionToken: String?): ApiResponse<String> {
+        @Serializable
+        class Body(
+            val fcmToken: String, val instanceId: String
+        )
+
+        val st = sessionToken ?: getSessionToken() ?: return ApiResponse.error("Not logged in")
+
+        val requestBody = toRequestBody(Body(fcmToken, instanceId))
+
+        return dispatch {
+            api.addDeviceToken(requestBody, authHeader(st))
         }
     }
 
     suspend fun getGoodHistory(
-        userId: String, limit: Int = 5, offset: Int = 0
+        limit: Int = 5, offset: Int = 0
     ): ApiResponse<List<Snapshot>> {
-        return api.getGoodHistory(userId, limit, offset).toApiResponse()
+        val sessionToken = getSessionToken() ?: return ApiResponse.error("Not logged in")
+        val instanceId = getInstanceId() ?: return ApiResponse.error("Not logged in")
+
+        return dispatch {
+            api.getGoodHistory(instanceId, limit, offset, authHeader(sessionToken))
+        }
     }
 
     /**
-     * Dispatches a request and handles serialization exceptions.
+     * Dispatches a request and handles exceptions.
      * This is useful to avoid boilerplate try-catch blocks in every API call.
      */
-    private suspend fun <T> dispatch(
-        request: suspend () -> ApiResponse<T>
+    private suspend inline fun <reified T> dispatch(
+        request: () -> Res<T>
     ): ApiResponse<T> {
         try {
-            return request()
+            return request().toApiResponse()
         } catch (e: SerializationException) {
             Log.e("ApiClient", "Failed to parse response", e)
             return ApiResponse.error("Failed to parse response: ${e.message ?: "Unknown error"}")
         } catch (e: Exception) {
-            Log.e("ApiClient", "Error registering token", e)
-            return ApiResponse.error("Error registering token: ${e.message ?: "Unknown error"}")
+            Log.e("ApiClient", "Error during API call", e)
+            return ApiResponse.error("Error during API call: ${e.message ?: "Unknown error"}")
         }
     }
 }
@@ -99,17 +149,24 @@ class ApiClient(
  * - The Res<T> type alias is used to simplify the return type in function signatures.
  */
 interface API {
-    @POST("/api/register")
-    suspend fun registerToken(
-        @Body body: RequestBody
+    @POST("/api/token")
+    suspend fun addDeviceToken(
+        @Body body: RequestBody,
+        @Header("Authorization") authHeader: String
     ): Res<String>
 
     @GET("/api/goodHistory")
     suspend fun getGoodHistory(
-        @Query("userId") userId: String,
+        @Query("instanceId") instanceId: String,
         @Query("limit") limit: Int = 5,
-        @Query("offset") offset: Int = 0
+        @Query("offset") offset: Int = 0,
+        @Header("Authorization") authHeader: String
     ): Res<List<Snapshot>>
+
+    @POST("/api/auth/session")
+    suspend fun createSession(
+        @Body body: RequestBody,
+    ): Res<String>
 }
 
 var apiSingleton: ApiClient? = null
@@ -119,7 +176,7 @@ fun createAPI(
 ): ApiClient {
     if (apiSingleton == null) {
         val retrofit = createRetrofit(dataStore)
-        apiSingleton = ApiClient(retrofit.create(API::class.java))
+        apiSingleton = ApiClient(retrofit.create(API::class.java), dataStore)
     }
     return apiSingleton!!
 }

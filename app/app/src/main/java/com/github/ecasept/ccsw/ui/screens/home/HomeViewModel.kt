@@ -26,7 +26,7 @@ open class LoginViewModel @JvmOverloads constructor(
 
     fun logout(navigate: () -> Unit) {
         viewModelScope.launch {
-            dataStore.updateUserId(null)
+            dataStore.logout()
             navigate()
         }
     }
@@ -68,14 +68,7 @@ open class LoginViewModel @JvmOverloads constructor(
                 }
             }
 
-            val userId = runBlocking {
-                dataStore.prefs.first().userId
-            }
-            if (userId.isNullOrEmpty()) {
-                _homeUiState.update { it.copy(loadState = LoadState.Failure("You are not logged in.")) }
-                return@launch
-            }
-            val response = apiClient.getGoodHistory(userId, limit = 5, offset = 0).on(
+            apiClient.getGoodHistory(limit = 5, offset = 0).on(
                 success = { data ->
                     Log.d("HomeViewModel", data.toString())
                     _homeUiState.update {

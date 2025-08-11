@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { DataPushSchema, ErrorResponse } from "./types";
+import { DataPushSchema, ErrorResponse, ValidationResult } from "./types";
 import { Database } from "./database.types";
 import z from "zod";
 
@@ -24,7 +24,6 @@ export function successResponse(data: any): Response {
     });
 }
 
-type ValidationResult<T> = { success: true; data: T } | { success: false; response: Response };
 
 /** Validates the schema and returns a type-safe result,
  * or a 404 response */
@@ -33,10 +32,10 @@ export function ensureSchema<T>(schema: z.ZodType<T>, data: unknown): Validation
     if (result.success) {
         return { success: true, data: result.data };
     } else {
-        console.error("Invalid request data:", result.error.message);
+        console.error("Schema validation error:", result.error);
         return {
             success: false,
-            response: errorResponse(`Invalid request data: ${result.error.message}`, 400)
+            response: errorResponse("Bad Request", 400)
         };
     }
 }

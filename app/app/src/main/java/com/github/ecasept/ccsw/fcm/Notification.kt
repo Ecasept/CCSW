@@ -18,16 +18,20 @@ const val ACTION_NOTIFICATION_CHANNEL_ID = "action"
 const val ACTION_NOTIFICATION_CHANNEL_NAME = "Actions"
 const val ACTION_NOTIFICATION_GROUP_ID = "action_group"
 
-fun showActionNotification(action: Action, uuid: String, context: Context) {
+fun showActionNotification(action: Action, id: Int, context: Context) {
     val (building, name, symbol, res) = getGood(action.goodId)
 
     val text = when (action.type) {
-        ActionType.SELL -> "$name has risen to ${action.value}$"
-        ActionType.BUY -> "$name has fallen to ${action.value}$"
+        ActionType.BUY -> "$name has fallen to ${action.value}$, passing the threshold of ${action.threshold}$"
+        ActionType.SELL -> "$name has risen to ${action.value}$, passing the threshold of ${action.threshold}$"
+        ActionType.MISSED_BUY -> "$name risen above the threshold of ${action.threshold}$"
+        ActionType.MISSED_SELL -> "$name fallen below the threshold of ${action.threshold}$"
     }
     val title = when (action.type) {
         ActionType.SELL -> "Sell $symbol"
         ActionType.BUY -> "Buy $symbol"
+        ActionType.MISSED_BUY -> "Missed Buying $symbol"
+        ActionType.MISSED_SELL -> "Missed Selling $symbol"
     }
 
     val largeIcon = Icon.createWithResource(context, res)
@@ -45,15 +49,10 @@ fun showActionNotification(action: Action, uuid: String, context: Context) {
                     .bigText(text)
             )
             .setGroup(ACTION_NOTIFICATION_GROUP_ID)
-            .setGroupSummary(true)
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setColor(context.getColor(R.color.purple_500))
-            .setColorized(true)
             .build()
 
     val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    val id = uuidToInt(uuid)
+
     notificationManager.notify(id, notification)
 }

@@ -14,62 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      devices: {
+        Row: {
+          fcm_token: string
+          id: string
+          instance_id: string
+        }
+        Insert: {
+          fcm_token: string
+          id: string
+          instance_id: string
+        }
+        Update: {
+          fcm_token?: string
+          id?: string
+          instance_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devices_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "instances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      instances: {
+        Row: {
+          access_code_hash: string
+          api_key_hash: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          access_code_hash: string
+          api_key_hash: string
+          created_at?: string
+          id: string
+          name: string
+        }
+        Update: {
+          access_code_hash?: string
+          api_key_hash?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           actions: Json
           created_at: string
           id: string
-          user_id: string
+          instance_id: string
         }
         Insert: {
           actions: Json
           created_at?: string
           id?: string
-          user_id: string
+          instance_id: string
         }
         Update: {
           actions?: Json
           created_at?: string
           id?: string
-          user_id?: string
+          instance_id?: string
         }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          fcm_token: string | null
-          id: string
-        }
-        Insert: {
-          fcm_token?: string | null
-          id: string
-        }
-        Update: {
-          fcm_token?: string | null
-          id?: string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notifications_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "instances"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       value_history: {
         Row: {
-          bought: boolean[]
+          goods: Json[]
+          instance_id: string
           timestamp: string
-          userId: string
-          values: number[]
         }
         Insert: {
-          bought: boolean[]
+          goods: Json[]
+          instance_id: string
           timestamp: string
-          userId: string
-          values: number[]
         }
         Update: {
-          bought?: boolean[]
+          goods?: Json[]
+          instance_id?: string
           timestamp?: string
-          userId?: string
-          values?: number[]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "value_history_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "instances"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

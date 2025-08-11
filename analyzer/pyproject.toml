@@ -1,0 +1,11 @@
+[project]
+name = "ccsw-analyzer"
+version = "0.1.0"
+description = "Analyzer for the CCSW project"
+readme = "../README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "json-five>=1.1.2",
+    "pillow>=11.3.0",
+    "pycurl>=7.45.6",
+]

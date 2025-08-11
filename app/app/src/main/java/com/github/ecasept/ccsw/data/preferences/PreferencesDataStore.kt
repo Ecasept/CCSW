@@ -6,7 +6,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.github.ecasept.ccsw.network.ServerUrlStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -18,34 +17,48 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class PreferencesDataStore(private val context: Context) {
 
     private object PreferencesKeys {
-        val USER_ID = stringPreferencesKey("user_id")
+        val INSTANCE_ID = stringPreferencesKey("instance_id")
+        val SESSION_TOKEN = stringPreferencesKey("session_token")
         val SERVER_URL = stringPreferencesKey("server_url")
     }
 
     val prefs: Flow<AppPreferences> = context.dataStore.data.map { preferences ->
         AppPreferences(
-            userId = preferences[PreferencesKeys.USER_ID],
+            instanceId = preferences[PreferencesKeys.INSTANCE_ID],
+            sessionToken = preferences[PreferencesKeys.SESSION_TOKEN],
             serverUrl = preferences[PreferencesKeys.SERVER_URL]
                 ?: GeneratedConfig.DEFAULT_SERVER_URL
         )
     }
-    val isLoggedIn = prefs.map { it.userId != null }
+    val isLoggedIn = prefs.map { it.instanceId != null && it.sessionToken != null }
 
-    suspend fun updateUserId(userId: String?) {
+    /** Updates a nullable preference key with a value or removes it if the value is null. */
+    private suspend fun <T> updateNullable(key: Preferences.Key<T>, value: T?) {
         context.dataStore.edit { preferences ->
-            if (userId != null) {
-                preferences[PreferencesKeys.USER_ID] = userId
+            if (value != null) {
+                preferences[key] = value
             } else {
-                preferences.remove(PreferencesKeys.USER_ID)
+                preferences.remove(key)
             }
         }
+    }
+
+    suspend fun logout() {
+        updateNullable(PreferencesKeys.INSTANCE_ID, null)
+        updateNullable(PreferencesKeys.SESSION_TOKEN, null)
+    }
+
+    suspend fun updateInstanceId(userId: String?) {
+        return updateNullable(PreferencesKeys.INSTANCE_ID, userId)
+    }
+
+    suspend fun updateSessionToken(sessionToken: String?) {
+        return updateNullable(PreferencesKeys.SESSION_TOKEN, sessionToken)
     }
 
     suspend fun updateServerUrl(serverUrl: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SERVER_URL] = serverUrl
         }
-        // Update server url for api client
-        ServerUrlStorage.serverUrl = serverUrl
     }
 }

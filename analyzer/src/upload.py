@@ -16,22 +16,16 @@ def push_values(goods: list[dict], actions: list[dict], timestamp: datetime):
         actions: List of recommended actions
         timestamp: Datetime object representing when the screenshot was taken
     """
-    try:
-        # Prepare the data payload
-        payload = {
-            "userId": conf.USER_ID,
-            "timestamp": timestamp.isoformat(),
-            "goods": goods,
-            "actions": actions
-        }
+    # Prepare the data payload
+    payload = {
+        "instanceId": conf.INSTANCE_ID,
+        "timestamp": timestamp.isoformat(),
+        "goods": goods,
+        "actions": actions
+    }
 
-        status_code, response_body = request.post(conf.Endpoint.UPDATE, payload)
+    res = request.post(
+        conf.Endpoint.UPDATE, payload).as_result()
 
-        if status_code >= 400:
-            log.error(
-                f"Failed to send data to server. Status: {status_code}, Response: {response_body}")
-
-    except pycurl.error as e:
-        log.exception(f"Failed to send data to server: {e}")
-    except Exception:
-        log.exception("Unexpected error when sending data to server")
+    if not res.success:
+        log.error(f"Failed to push values to server: {res.error}")
