@@ -7,7 +7,7 @@ import java.time.OffsetDateTime
 @Serializable
 data class Snapshot(
     @SerialName("goods")
-    val goods: List<SnapshotEntry>,
+    val goods: Map<String, SnapshotEntry>,
     @Serializable(with = OffsetDateTimeSerializer::class)
     @SerialName("timestamp")
     val timestamp: OffsetDateTime,

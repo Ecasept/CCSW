@@ -1,4 +1,4 @@
-import { Action, DataPushSchema, InstanceId } from "../types";
+import { Action, InstanceId } from "../types";
 import { errorResponse, supabase } from "../utils";
 
 export async function sendPushNotification(instanceId: InstanceId, actions: Action[]) {

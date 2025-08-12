@@ -8,26 +8,26 @@ import base64
 
 
 MOCK_DATA = {
-    'goods': [
-        {'value': 25.44, 'bought': True},
-        {'value': 44.83, 'bought': True},
-        {'value': 40.48, 'bought': False},
-        {'value': 19.49, 'bought': True},
-        {'value': 25.07, 'bought': False},
-        {'value': 10.33, 'bought': True},
-        {'value': 132.46, 'bought': True},
-        {'value': 135.11, 'bought': False},
-        {'value': 41.16, 'bought': False},
-        {'value': 136.76, 'bought': True},
-        {'value': 97.89, 'bought': False},
-        {'value': 177.25, 'bought': False},
-        {'value': 13.74, 'bought': True},
-        {'value': 162.87, 'bought': False},
-        {'value': 110.16, 'bought': False},
-        {'value': 151.28, 'bought': False},
-        {'value': 170.4, 'bought': True},
-        {'value': 170.23, 'bought': False}
-    ]
+    'goods': {
+        'CRL': {'value': 25.44, 'bought': True},
+        'CHC': {'value': 44.83, 'bought': True},
+        'BTR': {'value': 40.48, 'bought': False},
+        'SUG': {'value': 19.49, 'bought': True},
+        'NUT': {'value': 25.07, 'bought': False},
+        'SLT': {'value': 10.33, 'bought': True},
+        'VNL': {'value': 132.46, 'bought': True},
+        'EGG': {'value': 135.11, 'bought': False},
+        'CNM': {'value': 41.16, 'bought': False},
+        'CRM': {'value': 136.76, 'bought': True},
+        'JAM': {'value': 97.89, 'bought': False},
+        'WCH': {'value': 177.25, 'bought': False},
+        'HNY': {'value': 13.74, 'bought': True},
+        'CKI': {'value': 162.87, 'bought': False},
+        'RCP': {'value': 110.16, 'bought': False},
+        'SBD': {'value': 151.28, 'bought': False},
+        'PBL': {'value': 170.4, 'bought': True},
+        'YOU': {'value': 170.23, 'bought': False}
+    }
 }
 
 

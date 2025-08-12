@@ -20,8 +20,8 @@ enum class ActionType {
 
 @Serializable
 data class Action(
-    @SerialName("good")
-    val goodId: Int,
+    @SerialName("symbol")
+    val symbol: String,
     @SerialName("value")
     val value: Double,
     @SerialName("thresh")

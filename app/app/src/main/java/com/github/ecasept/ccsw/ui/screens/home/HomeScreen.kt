@@ -182,10 +182,10 @@ fun HomeScreenContent(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(getAllGoods().fastMapIndexed { i, g -> Pair(i, g) }) { (index, good) ->
+            items(getAllGoods()) { good ->
                 // Get the snapshot entry for this good from every snapshot
                 val history = snapshots.mapNotNull { snapshot ->
-                    snapshot.goods.getOrNull(index)?.let { entry ->
+                    snapshot.goods[good.symbol]?.let { entry ->
                         GoodHistoryEntry(
                             timestamp = snapshot.timestamp,
                             value = entry.value,
@@ -317,9 +317,7 @@ fun HomeScreenContentPreview() {
         HomeScreenContent(
             snapshots = listOf(Snapshot(
                 timestamp = OffsetDateTime.now(),
-                goods = getAllGoods().map {
-                    SnapshotEntry(value = 200.0, bought = true)
-                }
+                goods = getAllGoods().associate { it.symbol to SnapshotEntry(value = 200.0, bought = true) }
             )
             ),
             modifier = Modifier.fillMaxSize(),

@@ -34,7 +34,7 @@ class CCSWFirebaseMessagingService : FirebaseMessagingService() {
         try {
             val decoded = Json.decodeFromString<NotificationData>(String(bytes))
             for (action in decoded.actions) {
-                showActionNotification(action, action.goodId, this)
+                showActionNotification(action, this)
             }
         } catch (e: SerializationException) {
             Log.e(TAG, "Failed to decode notification data", e)

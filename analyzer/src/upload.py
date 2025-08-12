@@ -1,18 +1,15 @@
-import pycurl
-import json
-from io import BytesIO
 from datetime import datetime
 from config import conf
 from logger import log
 import request
 
 
-def push_values(goods: list[dict], actions: list[dict], timestamp: datetime):
+def push_values(goods: dict, actions: list[dict], timestamp: datetime):
     """
     Push combined goods data, actions, and timestamp to the server.
 
     Args:
-        goods: List of dictionaries with `value` and `bought` keys
+        goods: Map keyed by symbol with `value` and `bought` keys
         actions: List of recommended actions
         timestamp: Datetime object representing when the screenshot was taken
     """

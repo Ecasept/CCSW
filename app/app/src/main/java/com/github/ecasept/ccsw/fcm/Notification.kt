@@ -3,23 +3,26 @@ package com.github.ecasept.ccsw.fcm
 import android.app.NotificationManager
 import android.content.Context
 import android.graphics.drawable.Icon
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.github.ecasept.ccsw.R
 import com.github.ecasept.ccsw.data.Action
 import com.github.ecasept.ccsw.data.ActionType
 import com.github.ecasept.ccsw.data.getGood
-
-fun uuidToInt(uuid: String): Int {
-    // TODO: Actually use db
-    return uuid.hashCode() and 0x7FFFFFFF // Ensure positive integer
-}
+import com.github.ecasept.ccsw.data.id
 
 const val ACTION_NOTIFICATION_CHANNEL_ID = "action"
 const val ACTION_NOTIFICATION_CHANNEL_NAME = "Actions"
 const val ACTION_NOTIFICATION_GROUP_ID = "action_group"
 
-fun showActionNotification(action: Action, id: Int, context: Context) {
-    val (building, name, symbol, res) = getGood(action.goodId)
+fun showActionNotification(action: Action, context: Context) {
+    val good = getGood(action.symbol)
+    if (good == null) {
+        Log.e("Notification", "No good found for symbol: ${action.symbol}")
+        return
+    }
+    val id = good.id
+    val (building, name, symbol, res) = good
 
     val text = when (action.type) {
         ActionType.BUY -> "$name has fallen to ${action.value}$, passing the threshold of ${action.threshold}$"

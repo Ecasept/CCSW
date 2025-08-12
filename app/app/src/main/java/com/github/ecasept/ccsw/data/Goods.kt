@@ -2,18 +2,6 @@ package com.github.ecasept.ccsw.data
 
 import com.github.ecasept.ccsw.R
 
-fun getGood(index: Int): Good {
-    return when (index) {
-        in 0..17 -> goods[index]
-        else -> Good(
-            "Unknown",
-            "Unknown",
-            "UNK",
-            R.drawable.good_00
-        ) // Default good if index is out of bounds
-    }
-}
-
 data class Good(
     val building: String,
     val name: String,
@@ -42,6 +30,14 @@ private val goods = listOf(
     Good("You", "<Your name>", "YOU", R.drawable.good_17)
 )
 
+val Good.id get() = goods.indexOf(this)
+
 fun getAllGoods(): List<Good> {
     return goods
+}
+
+private val goodMap = goods.associateBy { it.symbol }
+
+fun getGood(symbol: String): Good? {
+    return goodMap[symbol]
 }

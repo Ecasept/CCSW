@@ -1,7 +1,6 @@
-
 export type Action = {
-    good: number;
+    symbol: string;
     value: number;
     thresh: number;
-    type: 'buy' | 'sell';
+    type: 'buy' | 'sell' | 'missed_buy' | 'missed_sell';
 }
