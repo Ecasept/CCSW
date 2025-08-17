@@ -50,12 +50,11 @@ def to_base64(image: Image.Image) -> str:
     Convert a PIL Image to a base64 encoded string.
     """
     buffer = BytesIO()
+    image.save(buffer, format="PNG")
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 
 def process_ai(screenshot_image: Image.Image, timestamp):
-
-    screenshot_image.save("screenshot.png", format="PNG")
 
     data = {
         "image": to_base64(screenshot_image),
