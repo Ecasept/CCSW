@@ -6,7 +6,6 @@ import com.github.ecasept.ccsw.data.ApiResponse
 import com.github.ecasept.ccsw.data.Snapshot
 import com.github.ecasept.ccsw.data.preferences.PreferencesDataStore
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -56,17 +55,18 @@ class ApiClient(
     private val api: API,
     private val dataStore: PreferencesDataStore
 ) {
+    /**
+     * Returns an error response indicating that the user is not logged in.
+     * This is used to avoid boilerplate code in every API call that requires authentication.
+     */
+    private fun <T> notLoggedInErr() = ApiResponse.error<T>("Not logged in")
 
     private suspend fun getSessionToken(): String? {
-        return runBlocking {
-            dataStore.prefs.first().sessionToken
-        }
+        return dataStore.prefs.first().sessionToken
     }
 
     private suspend fun getInstanceId(): String? {
-        return runBlocking {
-            dataStore.prefs.first().instanceId
-        }
+        return dataStore.prefs.first().instanceId
     }
 
     /**
@@ -96,13 +96,17 @@ class ApiClient(
         }
     }
 
-    suspend fun addDeviceToken(fcmToken: String, instanceId: String, sessionToken: String?): ApiResponse<String> {
+    suspend fun addDeviceToken(
+        fcmToken: String,
+        instanceId: String,
+        sessionToken: String?
+    ): ApiResponse<String> {
         @Serializable
         class Body(
             val fcmToken: String, val instanceId: String
         )
 
-        val st = sessionToken ?: getSessionToken() ?: return ApiResponse.error("Not logged in")
+        val st = sessionToken ?: getSessionToken() ?: return notLoggedInErr()
 
         val requestBody = toRequestBody(Body(fcmToken, instanceId))
 
@@ -114,8 +118,8 @@ class ApiClient(
     suspend fun getGoodHistory(
         limit: Int = 5, offset: Int = 0
     ): ApiResponse<List<Snapshot>> {
-        val sessionToken = getSessionToken() ?: return ApiResponse.error("Not logged in")
-        val instanceId = getInstanceId() ?: return ApiResponse.error("Not logged in")
+        val sessionToken = getSessionToken() ?: return notLoggedInErr()
+        val instanceId = getInstanceId() ?: return notLoggedInErr()
 
         return dispatch {
             api.getGoodHistory(instanceId, limit, offset, authHeader(sessionToken))
@@ -126,11 +130,16 @@ class ApiClient(
      * Dispatches a request and handles exceptions.
      * This is useful to avoid boilerplate try-catch blocks in every API call.
      */
-    private suspend inline fun <reified T> dispatch(
+    private inline fun <reified T> dispatch(
         request: () -> Res<T>
     ): ApiResponse<T> {
         try {
-            return request().toApiResponse()
+            val res = request()
+            val url = res.raw().request.url.toString()
+            val response = res.toApiResponse()
+            val str = response.toResult().toString()
+            Log.d("ApiClient", "Request to $url returned: $str")
+            return response
         } catch (e: SerializationException) {
             Log.e("ApiClient", "Failed to parse response", e)
             return ApiResponse.error("Failed to parse response: ${e.message ?: "Unknown error"}")
