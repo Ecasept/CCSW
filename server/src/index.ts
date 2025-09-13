@@ -18,32 +18,29 @@ import { goodHistory } from "./api/goodHistory";
 import { createInstance } from "./api/auth/instance";
 import { createSession } from "./api/auth/session";
 import { addDeviceToken } from "./api/token";
+import { actions } from "./api/actions";
+
+const routeMap = new Map([
+    ["/api/update", update],
+    ["/api/token", addDeviceToken],
+    ["/api/process", processImg],
+    ["/api/goodHistory", goodHistory],
+    ["/api/actions", actions],
+    ["/api/auth/instance", createInstance],
+    ["/api/auth/session", createSession],
+]);
 
 export default {
     async fetch(request, env, ctx): Promise<Response> {
         const url = new URL(request.url);
-        switch (url.pathname) {
-            case "/":
-                return new Response("Hello, World!");
-            case "/api/update":
-                initSupabaseClient(env);
-                return await update(request, env, ctx);
-            case "/api/token":
-                initSupabaseClient(env);
-                return await addDeviceToken(request, env, ctx);
-            case "/api/process":
-                return await processImg(request, env, ctx);
-            case "/api/goodHistory":
-                initSupabaseClient(env);
-                return await goodHistory(request, env, ctx);
-            case "/api/auth/instance":
-                initSupabaseClient(env);
-                return await createInstance(request, env, ctx)
-            case "/api/auth/session":
-                initSupabaseClient(env);
-                return await createSession(request, env, ctx)
-            default:
-                return errorResponse("Not Found", 404);
+        if (url.pathname === "/") {
+            return new Response("Hello, World!");
         }
+        const routeHandler = routeMap.get(url.pathname);
+        if (routeHandler) {
+            initSupabaseClient(env);
+            return await routeHandler(request, env, ctx);
+        }
+        return errorResponse("Not Found", 404);
     },
 } satisfies ExportedHandler<Env>;
