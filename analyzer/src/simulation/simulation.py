@@ -44,6 +44,9 @@ def run_simulation():
 
     log.info("Running stock market simulation...")
     # Run the TypeScript simulation file
-    process = subprocess.run(["npx", "tsx", "stockmarketsim.ts"], check=True,
+    process = subprocess.run(["npx", "tsx", "stockmarketsim.ts"],
                              cwd="simulation")
+    if process.returncode != 0:
+        log.error("Simulation failed to run.")
+        return False
     return True

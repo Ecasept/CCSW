@@ -1,5 +1,3 @@
-
-
 interface Good {
     mode: number;
     last: number;
@@ -19,7 +17,7 @@ import { readFileSync } from 'fs';
 import JSON5 from 'json5';
 
 // Load configuration from JSON5 file (supports comments)
-const config = JSON5.parse(readFileSync('../../config.jsonc', 'utf-8'));
+const config = JSON5.parse(readFileSync('../../../config.jsonc', 'utf-8'));
 const bankLevel = config.bankLevel;                           // Bank upgrade level
 const dragonBoost = config.hasSupremeIntellect ? 1 : 0;      // Supreme Intellect dragon upgrade
 const YEARS = config.simulationYears;
@@ -28,10 +26,6 @@ const YEARS = config.simulationYears;
 /** Initializes the game with the code from the game */
 function gameInit() {
 
-    var globD = 0; var globP = Math.random();
-
-
-
     function getRestingVal(id) {
         return 10 + 10 * id + (bankLevel - 1);
     }
@@ -39,14 +33,14 @@ function gameInit() {
 
     for (let i = 0; i < 18; i++) {
         let it = {
-            mode: 0,
+            mode: choose([0, 1, 1, 2, 2, 3, 4, 5]),
             last: 0,
             stock: 0,
-            dur: 0,
+            dur: Math.floor(10 + Math.random() * 690),
             prev: 0,
             val: getRestingVal(i),
             vals: [getRestingVal(i)],
-            d: 0,
+            d: Math.random() * 0.2 - 0.1,
             id: i,
         };
         goodsById.push(it);
@@ -54,6 +48,8 @@ function gameInit() {
 
 
     function tick() {
+        let globD = 0;
+        const globP = Math.random();
         if (Math.random() < 0.1 + 0.1 * dragonBoost) globD = (Math.random() - 0.5) * 2;
         for (var i = 0; i < goodsById.length; i++) {
             var me = goodsById[i];
@@ -88,26 +84,11 @@ function gameInit() {
             if (me.val > (100 + (bankLevel - 1) * 3) && me.d > 0) me.d *= 0.9;
 
             me.val += me.d;
-            /*if (me.val<=0 && me.d<0)
-            {
-                me.d*=0.75;
-                if (me.mode==4 && Math.random()<0.05) me.mode=2;
-            }
-            if (me.val<2) me.val+=(2-me.val)*0.1;
-            me.val=Math.max(me.val,0.01);*/
-            /*var cutoff=5;
-            var minvalue=1;
-            if (me.val<=cutoff)
-            {
-                var s=Math.max(0,me.val)/cutoff;
-                me.val=((2*minvalue-cutoff)*s+(2*cutoff-3*minvalue))*s*s+minvalue;//low soft-cap between 1 and 5
-            }*/
             if (me.val < 5) me.val += (5 - me.val) * 0.5;
             if (me.val < 5 && me.d < 0) me.d *= 0.95;
             me.val = Math.max(me.val, 1);
             me.vals.push(me.val);
             me.dur--;
-            //if (Math.random()<1/me.dur)
             if (me.dur <= 0) {
                 me.dur = Math.floor(10 + Math.random() * (690 - 200 * dragonBoost));
                 if (Math.random() < dragonBoost && Math.random() < 0.5) me.mode = 5;
@@ -115,9 +96,6 @@ function gameInit() {
                 else me.mode = choose([0, 1, 1, 2, 2, 3, 4, 5]);
             }
         }
-        // M.checkGraphScale();
-        // M.toRedraw = Math.max(M.toRedraw, 1);
-        // M.ticks++;
     }
 
     return tick
