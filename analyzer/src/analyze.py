@@ -85,6 +85,8 @@ def analyze_values(goods: dict, timestamp):
             elif prev_state == GoodState.SHOULD_SELL and cur_state != GoodState.SHOULD_SELL:
                 # Good went out of SHOULD_SELL state, so post a missed sell action
                 action(sell_threshold, "missed_sell")
+            elif prev_state == GoodState.SHOULD_SELL and cur_state == GoodState.SHOULD_SELL:
+                action(sell_threshold, "still_sell")
         else:
             if prev_state != GoodState.SHOULD_BUY and cur_state == GoodState.SHOULD_BUY:
                 # Good changed to SHOULD_BUY so post a buy action
@@ -92,6 +94,8 @@ def analyze_values(goods: dict, timestamp):
             elif prev_state == GoodState.SHOULD_BUY and cur_state != GoodState.SHOULD_BUY:
                 # Good went out of SHOULD_BUY state, so post a missed buy action
                 action(buy_threshold, "missed_buy")
+            elif prev_state == GoodState.SHOULD_BUY and cur_state == GoodState.SHOULD_BUY:
+                action(buy_threshold, "still_buy")
         prev_good_state[symbol] = cur_state
 
     upload.push_values(goods, actions, timestamp)

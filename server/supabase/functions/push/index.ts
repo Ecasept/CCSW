@@ -67,9 +67,12 @@ Deno.serve(async (req) => {
                 message: {
                     token: data[0].fcm_token,
                     data: {
-                        created_at: payload.record.created_at,
-                        id: payload.record.id,
-                        actions: JSON.stringify(payload.record.actions),
+                        payload: JSON.stringify({
+                            id: payload.record.id,
+                            instance_id: payload.record.instance_id,
+                            created_at: payload.record.created_at,
+                            actions: payload.record.actions,
+                        }),
                     }
                 },
             }),

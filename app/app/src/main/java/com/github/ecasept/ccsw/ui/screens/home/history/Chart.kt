@@ -1,4 +1,4 @@
-package com.github.ecasept.ccsw.ui.screens.home
+package com.github.ecasept.ccsw.ui.screens.home.history
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.ecasept.ccsw.data.GoodHistory
+import com.github.ecasept.ccsw.utils.formatRelative
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
@@ -33,33 +34,6 @@ import java.time.OffsetDateTime
 import kotlin.math.max
 import kotlin.math.min
 
-// --- Time constants & helpers ---
-const val MINUTE = 60
-const val HOUR = MINUTE * 60
-const val DAY = HOUR * 24
-const val WEEK = DAY * 7
-const val MONTH = WEEK * 4
-const val YEAR = MONTH * 12
-
-private fun formatRelative(d: Long): String {
-    val format = { unit: Int -> d / unit }
-    return when {
-        d < MINUTE -> "now"
-        d < HOUR -> "${format(MINUTE)}m"
-        d < DAY -> "${format(HOUR)}h"
-        d < WEEK -> "${format(DAY)}d"
-        d < MONTH -> "${format(WEEK)}w"
-        d < YEAR -> "${format(MONTH)}mo"
-        else -> "${format(YEAR)}y"
-    }
-}
-
-val Int.m get() = this * MINUTE.toLong()
-val Int.h get() = this * HOUR.toLong()
-val Int.d get() = this * DAY.toLong()
-val Int.w get() = this * WEEK.toLong()
-val Int.mo get() = this * MONTH.toLong()
-val Int.y get() = this * YEAR.toLong()
 
 private const val CHART_HEIGHT_DP = 120
 private const val CHART_SPAN = 100
@@ -165,7 +139,7 @@ fun GoodChartDataProvider(
     goodHistory: GoodHistory,
     modelProducer: CartesianChartModelProducer
 ) {
-    LaunchedEffect(Unit) {
+    LaunchedEffect(goodHistory) {
         modelProducer.runTransaction {
             lineSeries {
                 series(

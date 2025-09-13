@@ -2,6 +2,7 @@ package com.github.ecasept.ccsw.fcm
 
 import android.util.Log
 import com.github.ecasept.ccsw.data.Action
+import com.github.ecasept.ccsw.data.PushAction
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.serialization.SerialName
@@ -15,24 +16,26 @@ const val TAG = "CCSWFirebaseMessagingService"
 data class NotificationData(
     @SerialName("created_at")
     val createdAt: String,
+    @SerialName("instance_id")
+    val instanceId: String,
     @SerialName("id")
     val id: String,
     @SerialName("actions")
-    val actions: List<Action>,
+    val actions: List<PushAction>,
 )
 
 class CCSWFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d(TAG, "From: ${remoteMessage.from}")
 
-        val bytes = remoteMessage.rawData
-        if (bytes == null) {
-            Log.w(TAG, "Received message with no data")
+        val payload = remoteMessage.data["payload"]
+        if (payload == null) {
+            Log.w(TAG, "No payload found in the message")
             return
         }
 
         try {
-            val decoded = Json.decodeFromString<NotificationData>(String(bytes))
+            val decoded = Json.decodeFromString<NotificationData>(payload)
             for (action in decoded.actions) {
                 showActionNotification(action, this)
             }

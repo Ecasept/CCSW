@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -17,17 +17,14 @@ export type Database = {
       devices: {
         Row: {
           fcm_token: string
-          id: string
           instance_id: string
         }
         Insert: {
           fcm_token: string
-          id: string
           instance_id: string
         }
         Update: {
           fcm_token?: string
-          id?: string
           instance_id?: string
         }
         Relationships: [
@@ -95,17 +92,20 @@ export type Database = {
       }
       value_history: {
         Row: {
-          goods: Json[]
+          actions: Json
+          goods: Json
           instance_id: string
           timestamp: string
         }
         Insert: {
-          goods: Json[]
+          actions: Json
+          goods: Json
           instance_id: string
           timestamp: string
         }
         Update: {
-          goods?: Json[]
+          actions?: Json
+          goods?: Json
           instance_id?: string
           timestamp?: string
         }

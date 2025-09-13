@@ -23,7 +23,7 @@ export const ActionSchema = z.object({
     symbol: SymbolEnum,
     value: z.number().min(GOOD_MIN), // Current value of the stock
     thresh: z.number().min(GOOD_MIN), // Threshold value (buy or sell threshold)
-    type: z.enum(['buy', 'sell', 'missed_buy', 'missed_sell']),
+    type: z.enum(['buy', 'sell', 'missed_buy', 'missed_sell', 'still_buy', 'still_sell']),
 });
 
 // Good item schema combining value and bought status

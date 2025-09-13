@@ -2,6 +2,7 @@ package com.github.ecasept.ccsw.network
 
 import android.content.Context
 import android.util.Log
+import com.github.ecasept.ccsw.data.ActionsSnapshot
 import com.github.ecasept.ccsw.data.ApiResponse
 import com.github.ecasept.ccsw.data.Snapshot
 import com.github.ecasept.ccsw.data.preferences.PreferencesDataStore
@@ -126,6 +127,17 @@ class ApiClient(
         }
     }
 
+    suspend fun getActions(
+        limit: Int = 5, offset: Int = 0
+    ): ApiResponse<List<ActionsSnapshot>> {
+        val sessionToken = getSessionToken() ?: return notLoggedInErr()
+        val instanceId = getInstanceId() ?: return notLoggedInErr()
+
+        return dispatch {
+            api.getActions(instanceId, limit, offset, authHeader(sessionToken))
+        }
+    }
+
     /**
      * Dispatches a request and handles exceptions.
      * This is useful to avoid boilerplate try-catch blocks in every API call.
@@ -176,6 +188,14 @@ interface API {
     suspend fun createSession(
         @Body body: RequestBody,
     ): Res<String>
+
+    @GET("/api/actions")
+    suspend fun getActions(
+        @Query("instanceId") instanceId: String,
+        @Query("limit") limit: Int = 5,
+        @Query("offset") offset: Int = 0,
+        @Header("Authorization") authHeader: String
+    ): Res<List<ActionsSnapshot>>
 }
 
 var apiSingleton: ApiClient? = null

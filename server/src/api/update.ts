@@ -24,6 +24,7 @@ export async function update(request: Request, env: Env, ctx: ExecutionContext):
             instance_id: data.instanceId,
             timestamp: data.timestamp,
             goods: data.goods,
+            actions: data.actions,
         });
     if (error) {
         console.error("Error inserting data:", error);

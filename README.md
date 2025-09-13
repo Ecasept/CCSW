@@ -1,7 +1,7 @@
 # Usage
 
 ## Analyzer
-When you first start the analyzer, it will instantly take a screenshot of your computer. Make sure you have Cookie Clicker opened and the stock market visible. The program will print a URL that you should visit. Here you will see the details of the instance that you have configured.
+On the first run, the program will simulate the stock market to get average values for it, which will later be used to recommend specific actions. The simulation will only run the first time you start the analyzer. After you start the analyzer (and the simulation is completed), it will instantly take a screenshot of your computer. Make sure you have Cookie Clicker opened and the stock market visible. The program will print a URL that you should visit. Here you will see the details of the instance that you have configured.
 - If there is no instance configured, you will be shown options for creating a new instance or logging in to an already existing one. Follow the instructions to continue.
 - If you have already configured an instance, the analyzer will have tried to log in when it was started, and the results will be shown on the website.
 If the login was successful, you should be able to continue to the bounds selection. Here you will see the screenshot that was taken earlier. Select the region of your screen where the different values of the stocks are displayed, and click submit. After this, the analyzer will immediately start screenshotting the area, processing it and uploading the data. You can take a look at the output of the program to see what it is currently doing.
@@ -70,8 +70,11 @@ I had SSL problems using the `requests` library (it would not recognize that the
 
 
 # Problems
+This project is not important and a priority for me. It started as a joke and I only continued it because I realized that I could learn a few things from it. That is why there are some flaws that I don't think I will fix, as the time I would need to invest far outweighs any benefit I would gain from doing so.
+
 - The flow for setting up the project is bad. Ideally the user starts the app and opens the web interface. Then everything can be controlled from there. The current structure makes this difficult. Implementing this would require:
     - Separating the server for the web interface and the actual analyzer
     - Using a real js framework instead of raw html
 - I have my own instance hosted at `cookie-clicker-stock-watcher.ecasept.workers.dev`, but the supabase side will be paused after a while and therefore unavailable
 - The notification endpoint for the supabase backend is open to everyone. As long as the supabase project id is not exposed, this should not be a problem.
+- Session tokens are valid indefinitely. Ideally they should expire after a while and the app or analyzer would respond to the expiration. Another part of this would be making access tokens only valid for like 5 minutes so you can share them. There would be an interface in the analyzer to create a new session token.

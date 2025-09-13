@@ -6,16 +6,17 @@ import android.graphics.drawable.Icon
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.github.ecasept.ccsw.R
-import com.github.ecasept.ccsw.data.Action
-import com.github.ecasept.ccsw.data.ActionType
+import com.github.ecasept.ccsw.data.PushAction
+import com.github.ecasept.ccsw.data.PushActionType
 import com.github.ecasept.ccsw.data.getGood
 import com.github.ecasept.ccsw.data.id
+import com.github.ecasept.ccsw.utils.formatPrice
 
 const val ACTION_NOTIFICATION_CHANNEL_ID = "action"
 const val ACTION_NOTIFICATION_CHANNEL_NAME = "Actions"
 const val ACTION_NOTIFICATION_GROUP_ID = "action_group"
 
-fun showActionNotification(action: Action, context: Context) {
+fun showActionNotification(action: PushAction, context: Context) {
     val good = getGood(action.symbol)
     if (good == null) {
         Log.e("Notification", "No good found for symbol: ${action.symbol}")
@@ -24,17 +25,20 @@ fun showActionNotification(action: Action, context: Context) {
     val id = good.id
     val (building, name, symbol, res) = good
 
+    val thresholdStr = formatPrice(action.threshold)
+    val valueStr = formatPrice(action.value)
+
     val text = when (action.type) {
-        ActionType.BUY -> "$name has fallen to ${action.value}$, passing the threshold of ${action.threshold}$"
-        ActionType.SELL -> "$name has risen to ${action.value}$, passing the threshold of ${action.threshold}$"
-        ActionType.MISSED_BUY -> "$name risen above the threshold of ${action.threshold}$"
-        ActionType.MISSED_SELL -> "$name fallen below the threshold of ${action.threshold}$"
+        PushActionType.BUY -> "$name has fallen to ${valueStr}$, passing the threshold of ${thresholdStr}$"
+        PushActionType.SELL -> "$name has risen to ${valueStr}$, passing the threshold of ${thresholdStr}$"
+        PushActionType.MISSED_BUY -> "$name was above the threshold of ${thresholdStr}$"
+        PushActionType.MISSED_SELL -> "$name was  below the threshold of ${thresholdStr}$"
     }
     val title = when (action.type) {
-        ActionType.SELL -> "Sell $symbol"
-        ActionType.BUY -> "Buy $symbol"
-        ActionType.MISSED_BUY -> "Missed Buying $symbol"
-        ActionType.MISSED_SELL -> "Missed Selling $symbol"
+        PushActionType.SELL -> "Sell $symbol"
+        PushActionType.BUY -> "Buy $symbol"
+        PushActionType.MISSED_BUY -> "Missed Buying $symbol"
+        PushActionType.MISSED_SELL -> "Missed Selling $symbol"
     }
 
     val largeIcon = Icon.createWithResource(context, res)
