@@ -1,3 +1,8 @@
+# About
+Have you ever wanted to get the Gaseous Assets achievement in Cookie Clicker but not spend your whole day staring at the stock market waiting for prices to change? Then this project is for you!
+
+Cookie Clicker Stock Watcher consists of a client side analyzer that periodically takes screenshots of your game and analyzes which stocks you should buy or sell, a (possibly self hosted) server, and an android app that can notify you whenever you need to run to your computer to complete a purchase or sale! Everything works fully automated, and you can't say this is cheating because the program does not issue any inputs to the game itself, and does not use methods like extracting the html from the page to get the current prices.
+
 # Usage
 
 ## Analyzer
@@ -32,8 +37,8 @@ If someone is hosting this project, you can use their instance:
     - supabase project
     - firebase project
 - Set the `name` property in `server/wrangler.jsonc` to the name of your cloudflare worker
-- Create `server/.env.local` at put your supabase project url in it, following `server/.env.local.example`
-- Create `server/.dev.vars` and put your supabase project url and secret key init, following `server/.dev.vars.example`
+- Create `server/.env.local` and put your supabase project url in it, following `server/.env.local.example`
+- Create `server/.dev.vars` and put your supabase project url and secret key in it, following `server/.dev.vars.example`
     - To create the secret key:
     - Go to your supabase project dashboard
     - Go to Project Settings > API Keys
@@ -42,13 +47,13 @@ If someone is hosting this project, you can use their instance:
     - Copy the key and put it into the file
 - Execute `npx wrangler secret put SUPABASE_KEY` and `npx wrangler secret put SUPABASE_URL` and for each enter what you entered into the `.dev.vars` file respectively
 - Now do the same for `JWT_SECRET` and ensure you generate the secret in a secure and random way, eg. using `openssl`.
-- Create a new API key in the google a ai studio and add id to the `server/.dev.vars` file and save it to wrangler with `AI_STUDIO_API_KEY`
+- Create a new API key in the Google AI Studio and add it to the `server/.dev.vars` file and save it to wrangler with `AI_STUDIO_API_KEY`
 - Configure your preferred settings in `config.jsonc`
 - Set the `serverUrl` property to the url of the cloudflare worker
 - Deploy the cloudflare worker with `npx wrangler deploy`
 - Run `npx supabase link` to link your workspace with your remote project
 - Deploy the supabase edge functions with `npx supabase functions deploy`
-- Deploy the supabase database with `npx supabase db push`, or `npx supabse db reset --linked` if you have previously already pushed to the db.
+- Deploy the supabase database with `npx supabase db push`, or `npx supabase db reset --linked` if you have previously already pushed to the db.
 - Add your app to firebase
 - Download the `google-services.json` file and put it at `app/app/google-services.json`
 - Create a new service account, ensure it has the necessary permissions, and put the `service-account.json` file at `server/supabase/functions/service-account.json`
