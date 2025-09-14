@@ -25,10 +25,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.ecasept.ccsw.ui.components.MainTopAppBar
 import com.github.ecasept.ccsw.ui.screens.home.history.History
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HomeScreen(
-    onSettingsNav: () -> Unit, onLogoutNav: () -> Unit, viewModel: LoginViewModel = viewModel()
+    onSettingsNav: () -> Unit, onLogoutNav: () -> Unit, viewModel: HomeViewModel = koinViewModel()
 ) {
 
     val state = viewModel.homeUiState.collectAsStateWithLifecycle().value

@@ -34,13 +34,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.ecasept.ccsw.ui.components.MainTopAppBar
 import com.github.ecasept.ccsw.ui.theme.CCSWTheme
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun LoginScreen(
-    onLoginNav: () -> Unit, viewModel: LoginViewModel = viewModel()
+    onLoginNav: () -> Unit, viewModel: LoginViewModel = koinViewModel()
 ) {
     val state = viewModel.loginState.collectAsStateWithLifecycle().value
 

@@ -1,11 +1,10 @@
 package com.github.ecasept.ccsw.network
 
-import android.content.Context
 import android.util.Log
 import com.github.ecasept.ccsw.data.ActionsSnapshot
 import com.github.ecasept.ccsw.data.ApiResponse
 import com.github.ecasept.ccsw.data.Snapshot
-import com.github.ecasept.ccsw.data.preferences.PreferencesDataStore
+import com.github.ecasept.ccsw.data.preferences.PDSRepo
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -14,6 +13,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
+import retrofit2.Retrofit
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -54,7 +54,7 @@ typealias Res<T> = Response<ApiResponse<T>>
 
 class ApiClient(
     private val api: API,
-    private val dataStore: PreferencesDataStore
+    private val dataStore: PDSRepo
 ) {
     /**
      * Returns an error response indicating that the user is not logged in.
@@ -198,21 +198,8 @@ interface API {
     ): Res<List<ActionsSnapshot>>
 }
 
-var apiSingleton: ApiClient? = null
-
 fun createAPI(
-    dataStore: PreferencesDataStore
-): ApiClient {
-    if (apiSingleton == null) {
-        val retrofit = createRetrofit(dataStore)
-        apiSingleton = ApiClient(retrofit.create(API::class.java), dataStore)
-    }
-    return apiSingleton!!
-}
-
-fun createAPI(
-    context: Context
-): ApiClient {
-    val dataStore = PreferencesDataStore(context)
-    return createAPI(dataStore)
+    retrofit: Retrofit,
+): API {
+    return retrofit.create(API::class.java)
 }

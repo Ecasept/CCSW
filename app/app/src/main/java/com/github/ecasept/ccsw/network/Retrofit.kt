@@ -1,6 +1,6 @@
 package com.github.ecasept.ccsw.network
 
-import com.github.ecasept.ccsw.data.preferences.PreferencesDataStore
+import com.github.ecasept.ccsw.data.preferences.PDSRepo
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -12,7 +12,7 @@ import okhttp3.Response
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
-class HostSelectionInterceptor(private val dataStore: PreferencesDataStore) : Interceptor {
+class HostSelectionInterceptor(private val dataStore: PDSRepo) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
@@ -35,18 +35,18 @@ class HostSelectionInterceptor(private val dataStore: PreferencesDataStore) : In
     }
 }
 
-fun createOkHttpClient(dataStore: PreferencesDataStore): OkHttpClient {
+fun createOkHttpClient(dataStore: PDSRepo): OkHttpClient {
     return OkHttpClient.Builder()
         .addInterceptor(HostSelectionInterceptor(dataStore))
         .build()
 }
 
 fun createRetrofit(
-    dataStore: PreferencesDataStore,
+    okHttpClient: OkHttpClient,
 ): Retrofit {
     return Retrofit.Builder()
         .baseUrl("https://example.com/") // This will be overridden by the interceptor
         .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
-        .client(createOkHttpClient(dataStore))
+        .client(okHttpClient)
         .build()
 }

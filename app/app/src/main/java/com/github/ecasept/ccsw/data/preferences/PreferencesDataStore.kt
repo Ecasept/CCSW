@@ -9,12 +9,12 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_preferences")
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_preferences")
 
 /**
  * DataStore manager for handling app preferences
  */
-class PreferencesDataStore(private val context: Context) {
+class PreferencesDataStoreRepository(private val dataStore: DataStore<Preferences>) {
 
     private object PreferencesKeys {
         val INSTANCE_ID = stringPreferencesKey("instance_id")
@@ -22,7 +22,7 @@ class PreferencesDataStore(private val context: Context) {
         val SERVER_URL = stringPreferencesKey("server_url")
     }
 
-    val prefs: Flow<AppPreferences> = context.dataStore.data.map { preferences ->
+    val prefs: Flow<AppPreferences> = dataStore.data.map { preferences ->
         AppPreferences(
             instanceId = preferences[PreferencesKeys.INSTANCE_ID],
             sessionToken = preferences[PreferencesKeys.SESSION_TOKEN],
@@ -34,7 +34,7 @@ class PreferencesDataStore(private val context: Context) {
 
     /** Updates a nullable preference key with a value or removes it if the value is null. */
     private suspend fun <T> updateNullable(key: Preferences.Key<T>, value: T?) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             if (value != null) {
                 preferences[key] = value
             } else {
@@ -57,8 +57,10 @@ class PreferencesDataStore(private val context: Context) {
     }
 
     suspend fun updateServerUrl(serverUrl: String) {
-        context.dataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[PreferencesKeys.SERVER_URL] = serverUrl
         }
     }
 }
+
+typealias PDSRepo = PreferencesDataStoreRepository

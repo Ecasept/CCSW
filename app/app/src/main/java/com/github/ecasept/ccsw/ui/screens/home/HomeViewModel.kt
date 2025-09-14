@@ -1,25 +1,22 @@
 package com.github.ecasept.ccsw.ui.screens.home
 
-import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.ecasept.ccsw.data.ActionsSnapshot
 import com.github.ecasept.ccsw.data.Snapshot
-import com.github.ecasept.ccsw.data.preferences.PreferencesDataStore
-import com.github.ecasept.ccsw.network.createAPI
+import com.github.ecasept.ccsw.data.preferences.PDSRepo
+import com.github.ecasept.ccsw.network.ApiClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-open class LoginViewModel @JvmOverloads constructor(
-    application: Application,
-    private val dataStore: PreferencesDataStore = PreferencesDataStore(application)
-) : AndroidViewModel(application) {
-
-    private val apiClient = createAPI(dataStore)
+open class HomeViewModel(
+    private val dataStore: PDSRepo,
+    private val apiClient: ApiClient
+) : ViewModel() {
 
     private val _homeUiState = MutableStateFlow(HomeUiState())
     val homeUiState = _homeUiState.asStateFlow()

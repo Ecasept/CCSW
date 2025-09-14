@@ -22,11 +22,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.ecasept.ccsw.ui.components.InputDialog
 import com.github.ecasept.ccsw.ui.components.MainTopAppBar
 import com.github.ecasept.ccsw.ui.theme.CCSWTheme
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingsScreen(
     onBackNav: () -> Unit,
-    viewModel: SettingsViewModel = viewModel()
+    viewModel: SettingsViewModel = koinViewModel()
 ) {
     val prefs by viewModel.prefs.collectAsStateWithLifecycle()
 

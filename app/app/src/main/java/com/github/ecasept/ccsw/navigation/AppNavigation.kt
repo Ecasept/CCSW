@@ -11,24 +11,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.github.ecasept.ccsw.data.preferences.PreferencesDataStore
+import com.github.ecasept.ccsw.data.preferences.PDSRepo
 import com.github.ecasept.ccsw.ui.screens.home.HomeScreen
 import com.github.ecasept.ccsw.ui.screens.login.LoginScreen
 import com.github.ecasept.ccsw.ui.screens.settings.SettingsScreen
+import org.koin.compose.koinInject
 
 const val DURATION = 300
 
 @Composable
 fun AppNavigation(
+    dataStore: PDSRepo = koinInject()
 ) {
     val navController = rememberNavController()
-    val context = LocalContext.current
-    val dataStore = PreferencesDataStore(context)
     val isLoggedIn = dataStore.isLoggedIn.collectAsState(initial = null).value
 
     // Background
@@ -49,31 +48,36 @@ fun AppNavigation(
 
 @Composable
 fun Navigation(startDestination: Destination, navController: NavHostController) {
-    NavHost(navController = navController,
+    NavHost(
+        navController = navController,
         startDestination = startDestination.route,
         enterTransition = {
-            slideIntoContainer(towards = AnimatedContentTransitionScope.SlideDirection.Start,
+            slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Start,
                 animationSpec = tween(DURATION),
                 initialOffset = { it / 2 }) + fadeIn(
                 initialAlpha = 0f, animationSpec = tween(DURATION)
             )
         },
         exitTransition = {
-            slideOutOfContainer(towards = AnimatedContentTransitionScope.SlideDirection.Start,
+            slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Start,
                 animationSpec = tween(DURATION),
                 targetOffset = { it / 2 }) + fadeOut(
                 targetAlpha = 0f, animationSpec = tween(DURATION)
             )
         },
         popEnterTransition = {
-            slideIntoContainer(towards = AnimatedContentTransitionScope.SlideDirection.End,
+            slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.End,
                 animationSpec = tween(DURATION),
                 initialOffset = { it / 2 }) + fadeIn(
                 initialAlpha = 0f, animationSpec = tween(DURATION)
             )
         },
         popExitTransition = {
-            slideOutOfContainer(towards = AnimatedContentTransitionScope.SlideDirection.End,
+            slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.End,
                 animationSpec = tween(DURATION),
                 targetOffset = { it / 2 }) + fadeOut(
                 targetAlpha = 0f, animationSpec = tween(DURATION)

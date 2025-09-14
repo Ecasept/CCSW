@@ -149,6 +149,10 @@ dependencies {
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
 
+    // DI
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

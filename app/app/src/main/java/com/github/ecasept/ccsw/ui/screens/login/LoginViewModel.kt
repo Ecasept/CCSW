@@ -3,8 +3,10 @@ package com.github.ecasept.ccsw.ui.screens.login
 import android.app.Application
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.ecasept.ccsw.data.preferences.PreferencesDataStore
+import com.github.ecasept.ccsw.data.preferences.PDSRepo
+import com.github.ecasept.ccsw.network.ApiClient
 import com.github.ecasept.ccsw.network.createAPI
 import com.github.ecasept.ccsw.ui.components.toTextFieldValue
 import com.google.firebase.messaging.FirebaseMessaging
@@ -14,12 +16,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-open class LoginViewModel @JvmOverloads constructor(
-    application: Application,
-    private val dataStore: PreferencesDataStore = PreferencesDataStore(application)
-) : AndroidViewModel(application) {
-
-    private val apiClient = createAPI(dataStore)
+open class LoginViewModel (
+    private val dataStore: PDSRepo,
+    private val apiClient: ApiClient,
+) : ViewModel() {
 
     fun login(navigate: () -> Unit) {
         _loginState.update { it.copy(loadState = LoadState.Loading) }
