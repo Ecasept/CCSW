@@ -1,3 +1,5 @@
+<h1 align="center"><img src="https://github.com/Ecasept/CCSW/blob/main/app/app/src/main/res/cookie_icon.svg" width=64 height=64"> <span>Cookie Clicker Stock Watcher</span></h1>
+
 # About
 Have you ever wanted to get the Gaseous Assets achievement in Cookie Clicker but not spend your whole day staring at the stock market waiting for prices to change? Then this project is for you!
 
