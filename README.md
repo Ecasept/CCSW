@@ -85,3 +85,6 @@ This project is not important and a priority for me. It started as a joke and I 
 - I have my own instance hosted at `cookie-clicker-stock-watcher.ecasept.workers.dev`, but the supabase side will be paused after a while and therefore unavailable
 - The notification endpoint for the supabase backend is open to everyone. As long as the supabase project id is not exposed, this should not be a problem.
 - Session tokens are valid indefinitely. Ideally they should expire after a while and the app or analyzer would respond to the expiration. Another part of this would be making access tokens only valid for like 5 minutes so you can share them. There would be an interface in the analyzer to create a new session token.
+
+# License
+This project is licensed under the GNU General Public License v3.0 or later.
